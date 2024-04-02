@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\API\Auth;
 
+use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Resources\API\Auth\AuthResource;
@@ -40,6 +41,29 @@ class AuthController extends Controller
             }
             SendRegisterEmail::dispatch($credential)->onQueue('emails');
             return ApiResponse(true, new AuthResource($credential), Response::HTTP_CREATED, 'Đăng ký tài khoản thành công');
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
+    }
+
+    // POST /api/account/login
+    public function login(AuthRequest $request)
+    {
+        try {
+            if (Auth::attempt($request->only('email', 'password'))) {
+                $user = Auth::user();
+                if (!$user||$user->status == User::STATUS_INACTIVE) {
+                    throw new \ErrorException('Thông tin không chính xác, vui lòng thử lại', Response::HTTP_BAD_REQUEST);
+                }
+                $token = $user->createToken('API Token')->plainTextToken;
+                $data = [
+                    'data'=>new AuthResource($user),
+                    'access_token' => $token,
+                ];
+                return ApiResponse(true,$data , Response::HTTP_OK, 'Đăng nhập thành công');
+            } else {
+                throw new \ErrorException('Đăng nhập thất bại, vui lòng kiểm tra lại thông tin', Response::HTTP_UNAUTHORIZED);
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
         }

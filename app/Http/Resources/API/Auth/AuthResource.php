@@ -21,6 +21,8 @@ class AuthResource extends JsonResource
             'gender' => $this->gender,
             'phone' => $this->phone,
             'role_id' => $this->role_id,
+            'status' => $this->status,
+            'birth_date'=> $this->birth_date
         ];
     }
 }

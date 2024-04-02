@@ -38,9 +38,16 @@ class AuthRequest extends FormRequest
                             'phone' => ['required', 'regex:/^0\d{9}$/'],
                             'email' => ['required', 'email', Rule::unique('users')],
                             'password' => 'required|string|min:8|max:10|confirmed',
-                            'gender' => ['required', Rule::in([User::GENDER_MALE,User::GENDER_FEMALE])],
-                            'birth_date' => 'required|date|before_or_equal:'.\Carbon\Carbon::now()->subYears(14)->format('Y-m-d'),
+                            'gender' => ['required', Rule::in([User::GENDER_MALE, User::GENDER_FEMALE])],
+                            'birth_date' => 'required|date|before_or_equal:' . \Carbon\Carbon::now()->subYears(14)->format('Y-m-d'),
                         ];
+                        break;
+                    case 'login':
+                        $rules = [
+                            'email' => 'required|email',
+                            'password' => 'required|string|min:8|max:10'
+                        ];
+                        break;
                     default:
                         return $rules;
                 }
@@ -69,12 +76,12 @@ class AuthRequest extends FormRequest
     }
 
     public function attributes()
-    { 
+    {
         return [
-            'role_id'=> 'Vai trò',
+            'role_id' => 'Vai trò',
             'full_name' => 'Họ và tên',
-            'phone' =>'Số điện thoại',
-            'email' =>'Email',
+            'phone' => 'Số điện thoại',
+            'email' => 'Email',
             'password' => 'Mật khẩu',
             'gender' => 'Giới tính',
             'birth_date' => 'Ngày sinh',
@@ -82,8 +89,9 @@ class AuthRequest extends FormRequest
         ];
     }
 
-    public function failedValidation( Validator $validator ) {
-        $response = ApiResponse(false,null,Response::HTTP_BAD_REQUEST,$validator->errors());
-        throw ( new ValidationException( $validator, $response ) );
+    public function failedValidation(Validator $validator)
+    {
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        throw (new ValidationException($validator, $response));
     }
 }

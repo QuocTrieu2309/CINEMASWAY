@@ -11,6 +11,8 @@ use Illuminate\Http\Response;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use App\Jobs\SendRegisterEmail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 class AuthController extends Controller
 {
@@ -52,20 +54,39 @@ class AuthController extends Controller
         try {
             if (Auth::attempt($request->only('email', 'password'))) {
                 $user = Auth::user();
-                if (!$user||$user->status == User::STATUS_INACTIVE) {
+                if (!$user || $user->status == User::STATUS_INACTIVE) {
                     throw new \ErrorException('Thông tin không chính xác, vui lòng thử lại', Response::HTTP_BAD_REQUEST);
                 }
                 $token = $user->createToken('API Token')->plainTextToken;
+                if ($token) {
+                    $expiresAt = Carbon::now()->addMinutes(1);
+                    DB::table('personal_access_tokens')
+                        ->where('tokenable_id', $user->id)
+                        ->update(['expires_at' => $expiresAt]);
+                }
                 $data = [
-                    'data'=>new AuthResource($user),
+                    'data' => new AuthResource($user),
                     'access_token' => $token,
                 ];
-                return ApiResponse(true,$data , Response::HTTP_OK, 'Đăng nhập thành công');
+                return ApiResponse(true, $data, Response::HTTP_OK, 'Đăng nhập thành công');
             } else {
                 throw new \ErrorException('Đăng nhập thất bại, vui lòng kiểm tra lại thông tin', Response::HTTP_UNAUTHORIZED);
             }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
+        }
+    }
+    //  POST /api/account/logout
+    public function logout()
+    {
+        try {
+            $userExits = Auth::user();
+            if (!$userExits) {
+                throw new \ErrorException('Đăng xuất thất bại', Response::HTTP_BAD_REQUEST);
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, 'Đăng xuất thành công');
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
 }

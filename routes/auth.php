@@ -8,4 +8,6 @@ Route::group(['prefix' => 'account'], function () {
     Route::post('/register',[AuthController::class,'register']);
     // Login Route 
     Route::post('/login',[AuthController::class,'login']);
+    // Logout Route
+    Route::post('/logout',[AuthController::class,'logout']);
 });

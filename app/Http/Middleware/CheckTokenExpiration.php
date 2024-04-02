@@ -7,16 +7,22 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Http\Response as HttpResponse;
+use Illuminate\Support\Facades\DB;
 
 class CheckTokenExpiration
 {
-    public function handle(Request $request, Closure $next)
+    public function handle($request, Closure $next)
     {
-        // Kiểm tra xem người dùng đã đăng nhập và token có hết hạn hay không
-        
-        if (Auth::user() && Auth::user()->token()->expires_at < now()) {
-            Auth::user()->tokens()->delete(); // Xóa các token cũ
-            return ApiResponse(false, null, HttpResponse::HTTP_BAD_REQUEST, 'Mã token đã hết hạn.');
+        // Kiểm tra xem người dùng đã đăng nhập hay chưa
+        if (Auth::check()) {
+            $user = Auth::user();
+            $currentAccessToken = $user->currentAccessToken();
+
+            if ($currentAccessToken && $currentAccessToken->expires_at < now()) {
+                // Xóa các token cũ
+                $user->tokens()->delete(); 
+                return ApiResponse(false, null, HttpResponse::HTTP_BAD_REQUEST, 'Mã token đã hết hạn.');
+            }
         }
 
         return $next($request);

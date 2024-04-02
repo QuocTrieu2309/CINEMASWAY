@@ -59,7 +59,7 @@ class AuthController extends Controller
                 }
                 $token = $user->createToken('API Token')->plainTextToken;
                 if ($token) {
-                    $expiresAt = Carbon::now()->addMinutes(1);
+                    $expiresAt = Carbon::now()->addMinutes(100);
                     DB::table('personal_access_tokens')
                         ->where('tokenable_id', $user->id)
                         ->update(['expires_at' => $expiresAt]);
@@ -84,9 +84,11 @@ class AuthController extends Controller
             if (!$userExits) {
                 throw new \ErrorException('Đăng xuất thất bại', Response::HTTP_BAD_REQUEST);
             }
+            $userExits->tokens()->delete();
             return ApiResponse(true, null, Response::HTTP_OK, 'Đăng xuất thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
 }

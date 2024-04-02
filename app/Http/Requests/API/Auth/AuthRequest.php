@@ -48,6 +48,15 @@ class AuthRequest extends FormRequest
                             'password' => 'required|string|min:8|max:10'
                         ];
                         break;
+                    case 'updateProfile':
+                        $rules = [
+                            'full_name' => 'required|string|regex:/^[\p{L}\s]+$/u|min:5',
+                            'phone' => ['required', 'regex:/^0\d{9}$/'],
+                            'gender' => ['required', Rule::in([User::GENDER_MALE, User::GENDER_FEMALE])],
+                            'birth_date' => 'required|date|before_or_equal:' . \Carbon\Carbon::now()->subYears(14)->format('Y-m-d'),
+                            // 'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+                        ];
+                        break;
                     default:
                         return $rules;
                 }
@@ -72,6 +81,7 @@ class AuthRequest extends FormRequest
             'before_or_equal' => ":attribute phải từ 14 tuổi trở lên",
             'unique' => ":attribute đã tồn tại",
             'in' => ':attribute phải nằm trong :in',
+            'avatar.max' => ':attribute có kích thước tối đa là :max bytes'
         ];
     }
 

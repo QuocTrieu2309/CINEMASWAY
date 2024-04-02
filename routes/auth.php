@@ -11,7 +11,9 @@ Route::group(['prefix' => 'account'], function () {
     Route::post('/login',[AuthController::class,'login']);
     // Logout Route
     Route::post('/logout',[AuthController::class,'logout']);
-    
+
     // Get Profile Route
     Route::get('/profile',[ProfileController::class,'getProfile']);
+    // POST Profile Update Route
+    Route::post('/profile/update',[ProfileController::class,'updateProfile']);
 });

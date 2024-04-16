@@ -29,7 +29,7 @@ class PasswordResetController extends Controller
                     'email' => 'Trường :attribute không đúng định dạng'
                 ],
                 [
-                    'email' => 'Trường Email'
+                    'email' => 'Email'
                 ]
             );
             if($validator->fails()){

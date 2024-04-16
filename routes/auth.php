@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\Auth\AuthController;
+use App\Http\Controllers\API\Auth\PasswordResetController;
 use App\Http\Controllers\API\Auth\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -16,4 +17,8 @@ Route::group(['prefix' => 'account'], function () {
     Route::get('/profile',[ProfileController::class,'getProfile']);
     // POST Profile Update Route
     Route::post('/profile/update',[ProfileController::class,'updateProfile']);
+    // POST forgot Password Route
+    Route::post('/forgot-password',[PasswordResetController::class,'forgotPassword']);
+    // POST Check-token Route
+    Route::post('/check-token',[PasswordResetController::class,'checkToken']);
 });

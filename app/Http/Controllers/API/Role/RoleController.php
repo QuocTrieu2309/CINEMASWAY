@@ -25,4 +25,21 @@ class RoleController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+    //POST api/dashboard/role/create
+    public function store(RoleRequest $request)
+    {
+        try {
+            $role = Role::create($request->all());
+            if(!$role){
+               return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
+            }
+            $data = [
+                'role' => new RoleResource($role)
+            ];
+            return ApiResponse(true, $request->all(), Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

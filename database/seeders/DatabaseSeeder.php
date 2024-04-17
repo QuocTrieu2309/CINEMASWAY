@@ -25,5 +25,8 @@ class DatabaseSeeder extends Seeder
             'birth_date' => now(),
             'avatar' => 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQ0qj2hty4nA_9f4S4LeOJBNhHOUX6x99QdUfzWQC3QKLAEobv97QXhP3Oe6ocZhTnhlPU&usqp=CAU',
         ]);
+        \App\Models\Role::query()->create([
+            'name'=> "Quản trị viên",
+        ]);
     }
 }

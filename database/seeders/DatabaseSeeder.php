@@ -31,7 +31,6 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         \App\Models\Permission::query()->create([
-            'user_id'=> 6,
             'name'=> "Quản lý quyền hạn",
         ]);
 

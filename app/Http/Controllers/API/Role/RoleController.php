@@ -37,7 +37,7 @@ class RoleController extends Controller
             $data = [
                 'role' => new RoleResource($role)
             ];
-            return ApiResponse(true, $request->all(), Response::HTTP_OK, messageResponseActionSuccess());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

@@ -25,4 +25,21 @@ class PermissionController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+    
+    //POST api/dashboard/permission/create
+    public function store(PermissionRequest $request)
+    {
+        try {
+            $permission = Permission::create($request->all());
+            if(!$permission){
+               return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
+            }
+            $data = [
+                'permission' => new PermissionResource($permission)
+            ];
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

@@ -17,3 +17,5 @@ use Illuminate\Support\Facades\Route;
 require_once __DIR__ . '/auth.php';
 //Role route
 require_once __DIR__ . '/role.php';
+//Permission route
+require_once __DIR__ . '/permission.php';

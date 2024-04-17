@@ -18,7 +18,7 @@ class CheckTokenExpiration
             $user = Auth::user();
             $currentAccessToken = $user->currentAccessToken();
 
-            if ($currentAccessToken && $currentAccessToken->expires_at < now()) {
+            if (!$currentAccessToken || $currentAccessToken->expires_at < now()) {
                 // Xóa các token cũ
                 $user->tokens()->delete(); 
                 return ApiResponse(false, null, HttpResponse::HTTP_BAD_REQUEST, 'Mã token đã hết hạn.');

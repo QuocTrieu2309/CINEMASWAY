@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\API\Role;
+namespace App\Http\Requests\API\Permission;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,7 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
-class RoleRequest extends FormRequest
+class PermissionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,14 +27,14 @@ class RoleRequest extends FormRequest
     {
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
-        switch($this->method()) {
+        switch ($this->method()) {
             case 'POST':
-                switch($currentMethod) {
+                switch ($currentMethod) {
                     case 'store':
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('roles')->where(function ($query) {
+                                Rule::unique('permissions')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
@@ -43,13 +43,13 @@ class RoleRequest extends FormRequest
                 }
                 break;
             case 'PUT':
-                switch($currentMethod) {
+                switch ($currentMethod) {
                     case 'update':
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('roles')->where(function ($query) {
-                                    return $query->where('deleted', 0);
+                                Rule::unique('permissions')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
                         ];
@@ -71,14 +71,14 @@ class RoleRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name' => 'Vai trò'
+            'name' => 'Quyền hạn'
         ];
     }
 
 
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false,null,Response::HTTP_BAD_REQUEST,$validator->errors());
-        throw (new ValidationException($validator,$response));
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        throw (new ValidationException($validator, $response));
     }
 }

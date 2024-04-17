@@ -9,4 +9,6 @@ Route::group(['prefix' => 'dashboard/role'], function () {
     Route::post('/create',[RoleController::class,'store']);
     //  Update Role Route
     Route::put('/update/{id}',[RoleController::class,'update']);
+    //  Delete Role Route
+    Route::delete('/delete/{id}',[RoleController::class,'destroy']);
 });

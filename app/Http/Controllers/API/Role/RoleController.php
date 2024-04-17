@@ -59,4 +59,17 @@ class RoleController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }       
     }
+
+    //DELETE api/dashboard/role/delete/{id}
+    public function destroy(string $id){
+        try {
+            $role = Role::find($id);
+            empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $role->deleted = 1;
+            $role->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }    
+    }
 }

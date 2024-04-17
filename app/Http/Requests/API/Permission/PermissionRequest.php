@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class PermissionRequest extends FormRequest
 {
@@ -26,21 +27,31 @@ class PermissionRequest extends FormRequest
     {
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
-        switch($this->method()) {
+        switch ($this->method()) {
             case 'POST':
-                switch($currentMethod) {
+                switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'name' => 'required|unique:permissions',
+                            'name' => [
+                                'required',
+                                Rule::unique('permissions')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
                         ];
                         break;
                 }
                 break;
             case 'PUT':
-                switch($currentMethod) {
+                switch ($currentMethod) {
                     case 'update':
                         $rules = [
-                            'name' => 'required|unique:permissions,name,'.$this->id,
+                            'name' => [
+                                'required',
+                                Rule::unique('permissions')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
                         ];
                         break;
                 }
@@ -67,7 +78,7 @@ class PermissionRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false,null,Response::HTTP_BAD_REQUEST,$validator->errors());
-        throw (new ValidationException($validator,$response));
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        throw (new ValidationException($validator, $response));
     }
 }

@@ -6,6 +6,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class RoleRequest extends FormRequest
 {
@@ -31,7 +32,12 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'store':
                         $rules = [
-                            'name' => 'required|unique:roles',
+                            'name' => [
+                                'required',
+                                Rule::unique('roles')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
                         ];
                         break;
                 }
@@ -40,7 +46,12 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'update':
                         $rules = [
-                            'name' => 'required|unique:roles,name,'.$this->id,
+                            'name' => [
+                                'required',
+                                Rule::unique('roles')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
                         ];
                         break;
                 }

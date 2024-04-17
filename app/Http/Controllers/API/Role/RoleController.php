@@ -19,7 +19,7 @@ class RoleController extends Controller
     public function index()
     {
         try {
-            $roles = Role::take(5)->get();
+            $roles = Role::where('deleted',0)->take(5)->get();
             return ApiResponse(true, RoleResource::collection($roles), Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

@@ -19,7 +19,7 @@ class PermissionController extends Controller
     public function index()
     {
         try {
-            $permissions = Permission::take(5)->get();
+            $permissions = Permission::where('deleted',0)->take(5)->get();
             return ApiResponse(true, PermissionResource::collection($permissions), Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
@@ -43,7 +43,7 @@ class PermissionController extends Controller
         }
     }
 
-    //UPDATE api/dashboard/role/update/{id}
+    //UPDATE api/dashboard/permission/update/{id}
     public function update(PermissionRequest $request, string $id){
         try {
             $permission = Permission::find($id);
@@ -53,10 +53,22 @@ class PermissionController extends Controller
                 'name' => $request->get('name') ?? $permission->name,
                 'description' =>$request->description
             ]);
-
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }       
+    }
+
+    //DELETE api/dashboard/permission/delete/{id}
+    public function destroy(string $id){
+        try {
+            $permission = Permission::find($id);
+            empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $permission->deleted = 1;
+            $permission->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }    
     }
 }

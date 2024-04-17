@@ -42,4 +42,21 @@ class PermissionController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+    //UPDATE api/dashboard/role/update/{id}
+    public function update(PermissionRequest $request, string $id){
+        try {
+            $permission = Permission::find($id);
+            empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+
+            $permissionUpdated = Permission::where('id', $id)->update([
+                'name' => $request->get('name') ?? $permission->name,
+                'description' =>$request->description
+            ]);
+
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }       
+    }
 }

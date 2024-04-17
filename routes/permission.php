@@ -7,8 +7,8 @@ Route::group(['prefix' => 'dashboard/permission'], function () {
     Route::get('/',[PermissionController::class,'index']);
     //Create Permission Route
     Route::post('/create',[PermissionController::class,'store']);
-    // //  Update Permission Route
-    // Route::put('/update/{id}',[PermissionController::class,'update']);
+    //  Update Permission Route
+    Route::put('/update/{id}',[PermissionController::class,'update']);
     // //  Delete Permission Route
     // Route::delete('/delete/{id}',[PermissionController::class,'destroy']);
 });

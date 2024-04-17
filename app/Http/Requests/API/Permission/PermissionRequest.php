@@ -31,7 +31,7 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'store':
                         $rules = [
-                            'name' => 'required|unique:roles',
+                            'name' => 'required|unique:permissions',
                         ];
                         break;
                 }
@@ -40,7 +40,7 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'update':
                         $rules = [
-                            'name' => 'required|unique:roles,name,'.$this->id,
+                            'name' => 'required|unique:permissions,name,'.$this->id,
                         ];
                         break;
                 }
@@ -60,7 +60,7 @@ class RoleRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name' => 'Vai trò'
+            'name' => 'Quyền hạn'
         ];
     }
 

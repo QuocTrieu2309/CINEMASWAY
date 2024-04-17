@@ -7,4 +7,6 @@ Route::group(['prefix' => 'dashboard/role'], function () {
     Route::get('/',[RoleController::class,'index']);
     //Create Role Route
     Route::post('/create',[RoleController::class,'store']);
+    //  Update Role Route
+    Route::put('/update/{id}',[RoleController::class,'update']);
 });

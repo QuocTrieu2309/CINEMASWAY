@@ -42,4 +42,21 @@ class RoleController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+    //UPDATE api/dashboard/role/update/{id}
+    public function update(RoleRequest $request, string $id){
+        try {
+            $role = Role::find($id);
+            empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+
+            $roleUpdated = Role::where('id', $id)->update([
+                'name' => $request->get('name') ?? $role->name,
+                'description' =>$request->description
+            ]);
+
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }       
+    }
 }

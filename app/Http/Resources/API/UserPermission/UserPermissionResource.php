@@ -16,6 +16,7 @@ class UserPermissionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'role' =>$this->user->role->name,
             'user' => $this->user->full_name,
             'permission'=> $this->permission->name
         ];

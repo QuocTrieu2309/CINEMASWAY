@@ -12,11 +12,20 @@ class UserPermission extends Model
         'user_id',
         'permission_id',
         'deleted'
-   ];
-   protected $hidden = [
-       'created_by',
-       'updated_by',
-       'created_at',
-       'updated_at',
-   ];
+    ];
+    protected $hidden = [
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function permission()
+    {
+        return $this->belongsTo(Permission::class);
+    }
 }

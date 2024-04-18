@@ -21,6 +21,7 @@ class UserPermissionController extends Controller
     public function index(Request $request)
     {
         try {
+            $this->authorize('checkPermission',UserPermission::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -44,6 +45,7 @@ class UserPermissionController extends Controller
     public function store(UserPermissionRequest $request)
     {
         try {
+            $this->authorize('checkPermission',UserPermission::class);
             $credential = UserPermission::where('user_id',$request->user_id)
                                         ->where('permission_id',$request->permission_id)->first();
             if($credential){
@@ -65,6 +67,7 @@ class UserPermissionController extends Controller
     //UPDATE api/dashboard/user-permission/update/{id}
     public function update(UserPermissionRequest $request, string $id){
         try {
+            $this->authorize('checkPermission',UserPermission::class);
             $userPermission = UserPermission::find($id);
             empty($userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $credential = UserPermission::where('user_id',$request->user_id)
@@ -87,6 +90,7 @@ class UserPermissionController extends Controller
     //DELETE api/dashboard/permission/delete/{id}
     public function destroy(string $id){
         try {
+            $this->authorize('checkPermission',UserPermission::class);
             $userPermission = UserPermission::find($id);
             empty( $userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $userPermission->deleted = 1;

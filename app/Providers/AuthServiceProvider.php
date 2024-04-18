@@ -7,7 +7,9 @@ namespace App\Providers;
 use App\Models\Permission;
 use App\Policies\RolePolicy;
 use App\Models\Role;
+use App\Models\UserPermission;
 use App\Policies\PermissionPolicy;
+use App\Policies\UserPermissionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -20,6 +22,7 @@ class AuthServiceProvider extends ServiceProvider
     protected $policies = [
         Role::class => RolePolicy::class,
         Permission::class => PermissionPolicy::class,
+        UserPermission::class => UserPermissionPolicy::class,
     ];
 
     /**

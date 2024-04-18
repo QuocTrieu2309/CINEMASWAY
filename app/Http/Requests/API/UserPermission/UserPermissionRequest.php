@@ -2,7 +2,11 @@
 
 namespace App\Http\Requests\API\UserPermission;
 
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Response;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
 
 class UserPermissionRequest extends FormRequest
 {
@@ -11,7 +15,7 @@ class UserPermissionRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +25,52 @@ class UserPermissionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $currentMethod = $this->route()->getActionMethod();
+        $rules = [];
+        switch($this->method()) {
+            case 'POST':
+                switch($currentMethod) {
+                    case 'store':
+                        $rules = [
+                            'user_id' => 'required|exists:users,id',
+                            'permission_id' => 'required|exists:permissions,id',
+                        ];
+                        break;
+                }
+                break;
+            case 'PUT':
+                switch($currentMethod) {
+                    case 'update':
+                        $rules = [
+                            'user_id' => 'required|exists:users,id',
+                            'permission_id' => 'required|exists:permissions,id',
+                        ];
+                        break;
+                }
+                break;
+        }
+        return $rules;
+    }
+
+    public function messages()
+    {
         return [
-            //
+            'name' => ':attribute không được để trống',
+            'unique' => ':attribute đã tồn tại',
         ];
+    }
+
+    public function attributes()
+    {
+        return [
+            'name' => 'Vai trò'
+        ];
+    }
+
+
+    public function failedValidation(Validator $validator)
+    {
+        $response = ApiResponse(false,null,Response::HTTP_BAD_REQUEST,$validator->errors());
+        throw (new ValidationException($validator,$response));
     }
 }

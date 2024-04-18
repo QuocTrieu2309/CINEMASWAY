@@ -9,7 +9,7 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
-    protected $limit = 15;
+    protected $limit = 10;
     protected $order = 'asc';
     protected $sort = 'created_at';
 

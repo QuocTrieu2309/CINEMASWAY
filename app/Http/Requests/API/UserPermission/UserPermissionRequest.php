@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\API\Role;
+namespace App\Http\Requests\API\UserPermission;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -8,7 +8,7 @@ use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 
-class RoleRequest extends FormRequest
+class UserPermissionRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -32,12 +32,8 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'store':
                         $rules = [
-                            'name' => [
-                                'required',
-                                Rule::unique('roles')->where(function ($query) {
-                                    return $query->where('deleted', 0);
-                                })
-                            ],
+                            'user_id' => 'required|exists:users,id',
+                            'permission_id' => 'required|exists:permissions,id',
                         ];
                         break;
                 }
@@ -46,12 +42,8 @@ class RoleRequest extends FormRequest
                 switch($currentMethod) {
                     case 'update':
                         $rules = [
-                            'name' => [
-                                'required',
-                                Rule::unique('roles')->where(function ($query) {
-                                    return $query->where('deleted', 0);
-                                })
-                            ],
+                            'user_id' => 'required|exists:users,id',
+                            'permission_id' => 'required|exists:permissions,id',
                         ];
                         break;
                 }
@@ -64,14 +56,15 @@ class RoleRequest extends FormRequest
     {
         return [
             'required' => ':attribute không được để trống',
-            'unique' => ':attribute đã tồn tại',
+            'exists' => ':attribute không hợp lệ',
         ];
     }
 
     public function attributes()
     {
         return [
-            'name' => 'Vai trò'
+            'user_id' => 'Người dùng',
+            'permission_id' => 'Quyền hạn'
         ];
     }
 

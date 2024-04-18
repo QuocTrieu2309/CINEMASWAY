@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Role extends Model
+class UserPermission extends Model
 {
     use HasFactory;
     protected $fillable = [
-         'name',
-         'description',
-         'deleted'
+        'user_id',
+        'permission_id',
+        'deleted'
     ];
     protected $hidden = [
         'created_by',
@@ -19,7 +19,13 @@ class Role extends Model
         'created_at',
         'updated_at',
     ];
-    public function users(){
-        return $this->hasMany(User::class);
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+    public function permission()
+    {
+        return $this->belongsTo(Permission::class);
     }
 }

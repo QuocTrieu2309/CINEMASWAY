@@ -49,7 +49,7 @@ class RoleRequest extends FormRequest
                             'name' => [
                                 'required',
                                 Rule::unique('roles')->where(function ($query) {
-                                    return $query->where('deleted', 0);
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);;
                                 })
                             ],
                         ];

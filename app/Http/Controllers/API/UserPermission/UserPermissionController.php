@@ -24,8 +24,17 @@ class UserPermissionController extends Controller
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = UserPermission::orderBy($this->sort, $this->order)->paginate($this->limit);
-            return ApiResponse(true, UserPermissionResource::collection($data), Response::HTTP_OK, messageResponseData());
+            $data = UserPermission::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $result = [
+                'data' => UserPermissionResource::collection($data),
+                'meta' => [
+                    'total' => $data->total(),
+                    'perPage' => $data->perPage(),
+                    'currentPage' => $data->currentPage(),
+                    'lastPage' => $data->lastPage(),
+                ],
+            ];
+            return ApiResponse(true,$result, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -73,5 +82,18 @@ class UserPermissionController extends Controller
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }       
+    }
+
+    //DELETE api/dashboard/permission/delete/{id}
+    public function destroy(string $id){
+        try {
+            $userPermission = UserPermission::find($id);
+            empty( $userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $userPermission->deleted = 1;
+            $userPermission->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }    
     }
 }

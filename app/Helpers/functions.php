@@ -40,3 +40,12 @@ function messageResponseActionSuccess()
 {
     return 'Thao tác thành công';
 }
+
+function CheckPermissionWithPolicy($model, $module)
+{
+    $permissions = $model->permission()->pluck('name')->toArray();
+    if(!in_array($module,$permissions)){
+        return false;
+    }
+    return true;
+}

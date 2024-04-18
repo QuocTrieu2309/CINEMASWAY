@@ -19,6 +19,7 @@ class RoleController extends Controller
     public function index()
     {
         try {
+            $this->authorize('checkPermission',Role::class);
             $roles = Role::where('deleted',0)->take(5)->get();
             return ApiResponse(true, RoleResource::collection($roles), Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
@@ -30,6 +31,7 @@ class RoleController extends Controller
     public function store(RoleRequest $request)
     {
         try {
+            $this->authorize('checkPermission',Role::class);
             $role = Role::create($request->all());
             if(!$role){
                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
@@ -46,6 +48,7 @@ class RoleController extends Controller
     //UPDATE api/dashboard/role/update/{id}
     public function update(RoleRequest $request, string $id){
         try {
+            $this->authorize('checkPermission',Role::class);
             $role = Role::find($id);
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
@@ -63,6 +66,7 @@ class RoleController extends Controller
     //DELETE api/dashboard/role/delete/{id}
     public function destroy(string $id){
         try {
+            $this->authorize('checkPermission',Role::class);
             $role = Role::find($id);
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $role->deleted = 1;

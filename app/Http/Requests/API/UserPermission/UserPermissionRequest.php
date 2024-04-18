@@ -55,15 +55,16 @@ class UserPermissionRequest extends FormRequest
     public function messages()
     {
         return [
-            'name' => ':attribute không được để trống',
-            'unique' => ':attribute đã tồn tại',
+            'required' => ':attribute không được để trống',
+            'exists' => ':attribute không hợp lệ',
         ];
     }
 
     public function attributes()
     {
         return [
-            'name' => 'Vai trò'
+            'user_id' => 'Người dùng',
+            'permission_id' => 'Quyền hạn'
         ];
     }
 

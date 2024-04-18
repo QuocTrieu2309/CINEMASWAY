@@ -30,4 +30,26 @@ class UserPermissionController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+    //POST api/dashboard/user-permission/create
+    public function store(UserPermissionRequest $request)
+    {
+        try {
+            $credential = UserPermission::where('user_id',$request->user_id)
+                                        ->where('permission_id',$request->permission_id)->first();
+            if($credential){
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,'Quyền hạn của người dùng đã tồn tại.' );
+            }
+            $userPermission = UserPermission::create($request->all());
+            if(!$userPermission){
+               return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
+            }
+            $data = [
+                'userPermission' => new UserPermissionResource($userPermission)
+            ];
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

@@ -40,7 +40,7 @@ function messageResponseActionSuccess()
 {
     return 'Thao tác thành công';
 }
-
+//Work with Policy
 function CheckPermissionWithPolicy($model, $module)
 {
     $permissions = $model->permission()->pluck('name')->toArray();

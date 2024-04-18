@@ -19,6 +19,7 @@ class PermissionController extends Controller
     public function index()
     {
         try {
+            $this->authorize('checkPermission',Permission::class);
             $permissions = Permission::where('deleted',0)->take(5)->get();
             return ApiResponse(true, PermissionResource::collection($permissions), Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
@@ -30,6 +31,7 @@ class PermissionController extends Controller
     public function store(PermissionRequest $request)
     {
         try {
+            $this->authorize('checkPermission',Permission::class);
             $permission = Permission::create($request->all());
             if(!$permission){
                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
@@ -46,6 +48,7 @@ class PermissionController extends Controller
     //UPDATE api/dashboard/permission/update/{id}
     public function update(PermissionRequest $request, string $id){
         try {
+            $this->authorize('checkPermission',Permission::class);
             $permission = Permission::find($id);
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
@@ -62,6 +65,7 @@ class PermissionController extends Controller
     //DELETE api/dashboard/permission/delete/{id}
     public function destroy(string $id){
         try {
+            $this->authorize('checkPermission',Permission::class);
             $permission = Permission::find($id);
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $permission->deleted = 1;

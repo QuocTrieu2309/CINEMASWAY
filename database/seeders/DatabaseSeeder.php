@@ -34,10 +34,20 @@ class DatabaseSeeder extends Seeder
         //     'name'=> "Quản lý quyền hạn",
         // ]);
 
-        \App\Models\UserPermission::query()->create([
-            'user_id'=> 3,
-            'permission_id' => 1,
-        ]);
+        // \App\Models\UserPermission::query()->create([
+        //     'user_id'=> 3,
+        //     'permission_id' => 1,
+        // ]);
 
+        \App\Models\Movie::query()->create([
+            'title'=> "King Kong 3",
+            'genre'=> "Khoa hoc vien tuong",
+            'director'=> "Trieu Cristiano",
+            'actor'=>"Trieu handsome",
+            'duration'=>"180",
+            'release_date'=>"2024/05/10",
+            'status'=>\App\Models\Movie::STATUS_COMING ,
+            'rated'=> \App\Models\Movie::RATED_C18 ,
+        ]);
     }
 }

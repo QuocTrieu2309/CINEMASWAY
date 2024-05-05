@@ -70,7 +70,7 @@ class MovieRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                         $rules = [
-                            'name' => [
+                            'title' => [
                                 'required',
                                 Rule::unique('movies')->where(function ($query) {
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);

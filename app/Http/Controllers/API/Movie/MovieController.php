@@ -48,25 +48,23 @@ class MovieController extends Controller
             if(!$movie){
                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
             }
-            $data = [
-                'movie' => new MovieResource($movie)
-            ];
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+    
     //UPDATE api/dashboard/movie/update/{id}
     public function update(MovieRequest $request, string $id){
         try {
             $movie = Movie::find($id);
-            empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
-            $roleUpdated = Movie::where('id', $id)->update([$request->all()]);
-
+            $movieUpdated = Movie::where('id', $id)->update($request->all());
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }       
     }
+
 }

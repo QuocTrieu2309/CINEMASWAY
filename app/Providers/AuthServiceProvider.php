@@ -7,6 +7,7 @@ use App\Models\Permission;
 use App\Policies\RolePolicy;
 use App\Models\Role;
 use App\Models\SeatType;
+use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
 use App\Policies\PermissionPolicy;
 use App\Policies\SeatTypePolicy;

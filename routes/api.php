@@ -21,3 +21,5 @@ require_once __DIR__ . '/role.php';
 require_once __DIR__ . '/permission.php';
 //User-Permission route
 require_once __DIR__ . '/user_permission.php';
+//Movie route
+require_once __DIR__ . '/movie.php';

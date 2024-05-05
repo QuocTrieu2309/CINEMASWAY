@@ -50,7 +50,6 @@ class MovieRequest extends FormRequest
                                 Rule::in([
                                     Movie::STATUS_COMING,
                                     Movie::STATUS_CURRENTLY,
-                                    Movie::STATUS_STOPPED
                                 ])
                             ],
                             'rated' => [
@@ -87,7 +86,6 @@ class MovieRequest extends FormRequest
                                 Rule::in([
                                     Movie::STATUS_COMING,
                                     Movie::STATUS_CURRENTLY,
-                                    Movie::STATUS_STOPPED
                                 ])
                             ],
                             'rated' => [

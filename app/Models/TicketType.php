@@ -16,17 +16,18 @@ class TicketType extends Model
         'name',
         'price',
         'promotion_price',
-        'deleted'
+
     ];
     protected $hidden = [
         'created_by',
         'updated_by',
+        'deleted',
         'created_at',
         'updated_at',
     ];
 
-    public function seatTypes()
+    public function seatType()
     {
-        return $this->hasMany(SeatType::class, 'seat_type_id', 'id');
+        return $this->belongsTo(SeatType::class, 'seat_type_id', 'id');
     }
 }

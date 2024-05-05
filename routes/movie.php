@@ -9,6 +9,6 @@ Route::group(['prefix' => 'dashboard/movie'], function () {
     Route::post('/create',[MovieController::class,'store']);
     //  Update Movie Route
     Route::put('/update/{id}',[MovieController::class,'update']);
-    // //  Delete Movie Route
-    // Route::delete('/delete/{id}',[MovieController::class,'destroy']);
+    //  Delete Movie Route
+    Route::delete('/delete/{id}',[MovieController::class,'destroy']);
 });

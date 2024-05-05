@@ -66,5 +66,17 @@ class MovieController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }       
     }
-
+    
+    //DELETE api/dashboard/role/delete/{id}
+    public function destroy(string $id){
+        try {
+            $movie = Movie::find($id);
+            empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $movie->deleted = 1;
+            $movie->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }    
+    }
 }

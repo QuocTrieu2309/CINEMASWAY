@@ -32,8 +32,21 @@ class TicketTypeRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'seat_type_id' => 'required|numeric',
-                            'name' => 'required|string|max:60',
+                            'seat_type_id' => [
+                                'required',
+                                'numeric',
+                                Rule::exists('seat_types', 'id')->where(function ($query) {
+                                    $query->where('deleted', 0);
+                                }),
+                            ],
+                            'name' => [
+                                'required',
+                                'string',
+                                'max:60',
+                                Rule::unique('ticket_types')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
                             'price' => 'required|numeric|min:0',
                             'promotion_price' => 'required|numeric|min:0',
                         ];
@@ -44,8 +57,21 @@ class TicketTypeRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                         $rules = [
-                            'seat_type_id' => 'required|numeric',
-                            'name' => 'required|string|max:60',
+                            'seat_type_id' => [
+                                'required',
+                                'numeric',
+                                Rule::exists('seat_types', 'id')->where(function ($query) {
+                                    $query->where('deleted', 0);
+                                }),
+                            ],
+                            'name' => [
+                                'required',
+                                'string',
+                                'max:60',
+                                Rule::unique('ticket_types')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
                             'price' => 'required|numeric|min:0',
                             'promotion_price' => 'required|numeric|min:0',
                         ];
@@ -61,6 +87,8 @@ class TicketTypeRequest extends FormRequest
         return [
             'required' => ":attribute không được để trống",
             'string' => ":attribute phải là chữ",
+            'exists' => ":attribute không tồn tại",
+            'unique' => ":attribute đã tồn tại",
             'numeric' => ":attribute phải là một số",
             'min' => ":attribute phải lớn hơn :min",
             'max' => ":attribute tối đa là :max kí tự ",

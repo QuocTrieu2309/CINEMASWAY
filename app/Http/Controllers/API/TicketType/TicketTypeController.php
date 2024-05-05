@@ -9,7 +9,6 @@ use App\Models\TicketType;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Validator;
 
 class TicketTypeController extends Controller
 {
@@ -25,7 +24,7 @@ class TicketTypeController extends Controller
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = TicketType::withoutTrashed()->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $data = TicketType::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
                 'data' => TicketTypeResource::collection($data),
                 'meta' => [
@@ -45,8 +44,8 @@ class TicketTypeController extends Controller
     {
         try {
             $this->authorize('checkPermission', TicketType::class);
-            $tickettype = TicketType::create($request->all());
-            if (!$tickettype) {
+            $ticketType = TicketType::create($request->all());
+            if (!$ticketType) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
@@ -59,10 +58,10 @@ class TicketTypeController extends Controller
     {
         try {
             $this->authorize('checkPermission', TicketType::class);
-            $tickettype = TicketType::withoutTrashed()->where('id', $id)->first();
-            empty($tickettype) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $ticketType = TicketType::where('id', $id)->where('deleted', 0)->first();
+            empty($ticketType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data = [
-                'tickettype' => new  TicketTypeResource($tickettype),
+                'ticketType' => new  TicketTypeResource($ticketType),
             ];
             return ApiResponse(true,   $data, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
@@ -74,23 +73,23 @@ class TicketTypeController extends Controller
     {
         try {
             $this->authorize('checkPermission', TicketType::class);
-            $tickettype = TicketType::withoutTrashed()->where('id', $id)->first();
-            empty($tickettype) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $tickettypeUpdated = TicketType::where('id', $id)->update($request->all());
+            $ticketType = TicketType::where('id', $id)->where('deleted', 0)->first();
+            empty($ticketType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $ticketTypeUpdated = TicketType::where('id', $id)->update($request->all());
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
     //DELETE api/dashboard/ticket-type/delete/{id}
     public function destroy($id)
     {
         try {
-            // $this->authorize('checkPermission',TicketType::class);
-            $tickettype = TicketType::withoutTrashed()->where('id', $id)->first();
-            empty($tickettype) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $tickettype->delete();
+            $this->authorize('checkPermission', TicketType::class);
+            $ticketType = TicketType::where('id', $id)->where('deleted', 0)->first();
+            empty($ticketType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $ticketType->deleted = 1;
+            $ticketType->save();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

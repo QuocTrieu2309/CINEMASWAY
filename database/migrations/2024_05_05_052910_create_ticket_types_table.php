@@ -19,8 +19,8 @@ return new class extends Migration
             $table->decimal('promotion_price', 8, 2)->comment('Giá vé khi áp dụng khuyến mãi');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->integer('deleted')->default(0);
             $table->timestamps();
-            $table->softDeletes();
             $table->foreign('seat_type_id')->references('id')->on('seat_types');
         });
     }

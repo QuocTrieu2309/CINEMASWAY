@@ -20,8 +20,7 @@ class TicketTypeResource extends JsonResource
             'name' => $this->name,
             'price' => $this->price,
             'promotion_price' => $this->promotion_price,
-            'created_by' => $this->created_by,
-            'updated_by' => $this->updated_by,
+            'deleted' => $this->deleted
         ];
     }
 }

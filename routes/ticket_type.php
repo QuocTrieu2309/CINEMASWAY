@@ -5,14 +5,14 @@ use App\Http\Controllers\API\TicketType\TicketTypeController;
 
 
 Route::group(['prefix' => 'dashboard/ticket-type'], function () {
-    // GET All User-permission Route
+    // GET All Ticket_Type  Route
     Route::get('/', [TicketTypeController::class, 'index']);
-    // GET One User-permission Route
+    // GET One Ticket_Type  Route
     Route::get('/{id}', [TicketTypeController::class, 'show']);
-    //Create User-permission Route
+    //Create Ticket_Type  Route
     Route::post('/create', [TicketTypeController::class, 'store']);
-    //  Update User-permission Route
+    //  Update Ticket_Type  Route
     Route::put('/update/{id}', [TicketTypeController::class, 'update']);
-    //  Delete User-permission Route
+    //  Delete Ticket_Type  Route
     Route::delete('/delete/{id}', [TicketTypeController::class, 'destroy']);
 });

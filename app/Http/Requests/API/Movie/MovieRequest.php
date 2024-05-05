@@ -114,7 +114,7 @@ class MovieRequest extends FormRequest
             'date' => ":attribute phải là ngày-tháng-năm",
             'duration.min' => ":attribute tối thiểu là :min phút",
             'max' => ":attribute tối đa là :max kí tự",
-            'after_or_equal' => ":attribute phải từ 14 tuổi trở lên",
+            'after_or_equal' => ":attribute phải từ ngày hôm nay trở đi",
             'unique' => ":attribute đã tồn tại",
             'in' => ':attribute phải nằm trong :in',
             'numeric' => ':attribute phải là số'

@@ -13,7 +13,6 @@ class RoleController extends Controller
     public function __construct()
     {
         $this->middleware('auth:sanctum');
-        $this->authorize('checkPermission',Role::class);
     }
 
     //GET api/dashboard/role
@@ -50,7 +49,7 @@ class RoleController extends Controller
     public function update(RoleRequest $request, string $id){
         try {
             $this->authorize('checkPermission',Role::class);
-            $role = Role::find($id);
+            $role = Role::where('id',$id)->where('deleted',0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
             $roleUpdated = Role::where('id', $id)->update([
@@ -68,7 +67,7 @@ class RoleController extends Controller
     public function destroy(string $id){
         try {
             $this->authorize('checkPermission',Role::class);
-            $role = Role::find($id);
+            $role = Role::where('id',$id)->where('deleted',0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $role->deleted = 1;
             $role->save();

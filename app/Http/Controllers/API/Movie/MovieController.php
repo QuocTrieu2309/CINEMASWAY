@@ -21,6 +21,7 @@ class MovieController extends Controller
     public function index(Request $request)
     {
         try {
+            $this->authorize('checkPermission',Movie::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -39,11 +40,27 @@ class MovieController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
+    
+    // GET /api/movie/{id}
+    public function show($id)
+    {
+        try {
+            $this->authorize('checkPermission',Movie::class);
+            $movie = Movie::where('id',$id)->where('deleted',0)->first();
+            empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'movie' => new  MovieResource( $movie),
+            ];
+            return ApiResponse(true,   $data, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
     //POST api/dashboard/movie/create
     public function store(MovieRequest $request)
     {
         try {
+            $this->authorize('checkPermission',Movie::class);
             $movie = Movie::create($request->all());
             if(!$movie){
                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
@@ -57,7 +74,8 @@ class MovieController extends Controller
     //UPDATE api/dashboard/movie/update/{id}
     public function update(MovieRequest $request, string $id){
         try {
-            $movie = Movie::find($id);
+            $this->authorize('checkPermission',Movie::class);
+            $movie = Movie::where('id',$id)->where('deleted',0)->first();
             empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
             $movieUpdated = Movie::where('id', $id)->update($request->all());
@@ -70,7 +88,8 @@ class MovieController extends Controller
     //DELETE api/dashboard/role/delete/{id}
     public function destroy(string $id){
         try {
-            $movie = Movie::find($id);
+            $this->authorize('checkPermission',Movie::class);
+            $movie = Movie::where('id',$id)->where('deleted',0)->first();
             empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $movie->deleted = 1;
             $movie->save();

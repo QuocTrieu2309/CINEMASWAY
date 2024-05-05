@@ -68,7 +68,7 @@ class UserPermissionController extends Controller
     public function update(UserPermissionRequest $request, string $id){
         try {
             $this->authorize('checkPermission',UserPermission::class);
-            $userPermission = UserPermission::find($id);
+            $userPermission = UserPermission::where('id',$id)->where('deleted',0)->first();
             empty($userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $credential = UserPermission::where('user_id',$request->user_id)
                                         ->where('permission_id',$request->permission_id)
@@ -91,7 +91,7 @@ class UserPermissionController extends Controller
     public function destroy(string $id){
         try {
             $this->authorize('checkPermission',UserPermission::class);
-            $userPermission = UserPermission::find($id);
+            $userPermission = UserPermission::where('id',$id)->where('deleted',0)->first();
             empty( $userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $userPermission->deleted = 1;
             $userPermission->save();

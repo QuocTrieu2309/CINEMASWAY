@@ -49,7 +49,7 @@ class PermissionController extends Controller
     public function update(PermissionRequest $request, string $id){
         try {
             $this->authorize('checkPermission',Permission::class);
-            $permission = Permission::find($id);
+            $permission = Permission::where('id',$id)->where('deleted',0)->first();
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
             $permissionUpdated = Permission::where('id', $id)->update([
@@ -66,7 +66,7 @@ class PermissionController extends Controller
     public function destroy(string $id){
         try {
             $this->authorize('checkPermission',Permission::class);
-            $permission = Permission::find($id);
+            $permission = Permission::where('id',$id)->where('deleted',0)->first();
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $permission->deleted = 1;
             $permission->save();

@@ -95,7 +95,7 @@ class SeatTypeController extends Controller
     {
         try {
             $this->authorize('checkPermission',SeatType::class);
-            $seatType = SeatType::find($id);
+            $seatType = SeatType::where('id', $id)->where('deleted', 0)->first();
             empty($seatType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $seatTypeUpdate = SeatType::where('id', $id)->update([
                 'name' => $request->get('name') ?? $seatType->name
@@ -114,7 +114,7 @@ class SeatTypeController extends Controller
     {
         try {
             $this->authorize('checkPermission', SeatType::class);
-            $seatType = SeatType::find($id);
+            $seatType = SeatType::where('id', $id)->where('deleted', 0)->first();
             empty($seatType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $seatType->deleted = 1;
             $seatType->save();

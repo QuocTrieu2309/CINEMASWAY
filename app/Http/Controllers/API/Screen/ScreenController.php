@@ -24,7 +24,7 @@ class ScreenController extends Controller
     {
         //
         try{
-            //  $this->authorize('checkPermission',Screen::class);
+              $this->authorize('checkPermission',Screen::class);
             $this->limit == $this->handleLimit($request->get('limit'),$this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -52,7 +52,7 @@ class ScreenController extends Controller
     {
         //
         try{
-            //  $this->authorize('checkPermission',Cinema::class );
+             $this->authorize('checkPermission',Screen::class );
 
             $screen = Screen::create($request->all());
             if(!$screen){
@@ -70,9 +70,9 @@ class ScreenController extends Controller
      */
     public function show($id)
     {
-        //
+
         try{
-            // $this->authorize('checkPermission',Screen::class);
+             $this->authorize('checkPermission',Screen::class);
             $screen = Screen::where('id',$id)->where('deleted',0)->first();
             empty($screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data = [
@@ -92,7 +92,7 @@ class ScreenController extends Controller
     {
 
         try{//
-        // $this->authorize('checkPermission',Screen::class);
+         $this->authorize('checkPermission',Screen::class);
             $Screen = Screen::where('id',$id)->where('deleted',0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
@@ -110,7 +110,7 @@ class ScreenController extends Controller
     {
         //
         try {
-            // $this->authorize('checkPermission',Screen::class);
+             $this->authorize('checkPermission',Screen::class);
             $Screen = Screen::where('id',$id)->where('deleted',0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $Screen->deleted = 1;

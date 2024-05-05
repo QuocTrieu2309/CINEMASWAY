@@ -17,10 +17,20 @@ class User extends Authenticatable
      *
      * @var array<int, string>
      */
+    const GENDER_MALE = 'Nam';
+    const GENDER_FEMALE = 'Nữ';
+    const STATUS_ACTIVE = 'Kích hoạt';
+    const STATUS_INACTIVE = 'Chưa kích hoạt';
     protected $fillable = [
-        'name',
+        'role_id',
+        'full_name',
+        'phone',
         'email',
         'password',
+        'gender',
+        'birth_date',
+        'avatar',
+        'status',
     ];
 
     /**
@@ -31,6 +41,10 @@ class User extends Authenticatable
     protected $hidden = [
         'password',
         'remember_token',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at',
     ];
 
     /**
@@ -42,4 +56,13 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
     ];
+    public function userPermissions(){
+        return $this->hasMany(UserPermission::class);
+    }
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
+    public function permission(){
+        return $this->hasManyThrough(Permission::class, UserPermission::class, 'user_id', 'id', 'id', 'permission_id');
+    }
 }

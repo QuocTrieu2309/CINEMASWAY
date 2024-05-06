@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\Cinema\CinemaController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,3 +22,5 @@ require_once __DIR__ . '/role.php';
 require_once __DIR__ . '/permission.php';
 //User-Permission route
 require_once __DIR__ . '/user_permission.php';
+
+// Route::apiResource('cinema',CinemaController::class);

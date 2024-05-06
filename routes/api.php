@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\Screen\ScreenController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -15,12 +14,10 @@ use Illuminate\Support\Facades\Route;
 |
 */
 // Auth route
-// require_once __DIR__ . '/auth.php';
-// //Role route
-// require_once __DIR__ . '/role.php';
-// //Permission route
-// require_once __DIR__ . '/permission.php';
-// //User-Permission route
-// require_once __DIR__ . '/user_permission.php';
-
- Route::apiResource('screen',ScreenController::class);
+require_once __DIR__ . '/auth.php';
+//Role route
+require_once __DIR__ . '/role.php';
+//Permission route
+require_once __DIR__ . '/permission.php';
+//User-Permission route
+require_once __DIR__ . '/user_permission.php';

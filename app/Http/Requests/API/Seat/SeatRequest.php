@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\API\Cinema;
-
+namespace App\Http\Requests\API\Seat;
+use App\Models\Seat;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CinemaRequest extends FormRequest
+class SeatRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -25,7 +25,6 @@ class CinemaRequest extends FormRequest
      */
     public function rules(): array
     {
-
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
         switch ($this->method()) {
@@ -33,15 +32,27 @@ class CinemaRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'name' => [
+                            'cinema_screens_id' => 'required|exists:cinema_screens,id',
+                            'seat_type_id' => 'required|exists:seat_types,id',
+                            'seat_number' => [
                                 'required',
-                                Rule::unique('seat_types')->where(function ($query) {
+                                Rule::unique('seats')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                        'city' => 'required|string|max:60',
-                        ];
 
+                            'status' => [
+                                'required',
+                                Rule::in([
+                                    Seat::STATUS_EMPTYSEAT,
+                                    Seat::STATUS_BELINGHOLD,
+                                    Seat::STATUS_SELECTED,
+                                    Seat::STATUS_SOLD,
+                                    Seat::STATUS_RESERVED,
+                                ])
+                            ],
+
+                        ];
                         break;
                 }
                 break;
@@ -49,13 +60,24 @@ class CinemaRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                             $rules = [
-                                'name' => [
+                                'seat_number' => [
                                     'required',
-                                    Rule::unique('seat_types')->where(function ($query) {
+                                    Rule::unique('seats')->where(function ($query) {
                                         return $query->where('deleted', 0);
                                     })
                                 ],
-                            'city' => 'required|string|max:60',
+
+                                'status' => [
+                                    'required',
+                                    Rule::in([
+                                        Seat::STATUS_EMPTYSEAT,
+                                        Seat::STATUS_BELINGHOLD,
+                                        Seat::STATUS_SELECTED,
+                                        Seat::STATUS_SOLD,
+                                        Seat::STATUS_RESERVED,
+                                    ])
+                                ],
+
 
                         ];
                         break;
@@ -64,22 +86,24 @@ class CinemaRequest extends FormRequest
         }
         return $rules;
     }
-
     public function messages()
     {
         return [
             'required' => ":attribute không được để trống",
-            'string' => ":attribute phải là chữ",
+            'in' => ':attribute phải nằm trong :in',
             'unique' => ':attribute đã tồn tại',
+
 
         ];
     }
-
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null,Response ::HTTP_BAD_REQUEST, $validator->errors());
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
         throw (new ValidationException($validator, $response));
     }
 
 }
+
+
+
 

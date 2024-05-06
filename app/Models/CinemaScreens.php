@@ -5,11 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Screen extends Model
+class CinemaScreens extends Model
 {
     use HasFactory;
-    protected $fillable = [
-        'name',
+    protected $fillable=[
+        'cinema_id',
+        'screen_id',
     ];
     protected $hidden = [
         'created_by',
@@ -17,4 +18,13 @@ class Screen extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function cinema(){
+        return $this->belongsTo(Cinema::class);
+    }
+    public function screen(){
+        return $this->belongsTo(Screen::class);
+    }
+
+
 }

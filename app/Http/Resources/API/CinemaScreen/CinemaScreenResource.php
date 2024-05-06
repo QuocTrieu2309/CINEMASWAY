@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Resources\API\Cinema;
+namespace App\Http\Resources\API\CinemaScreen;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class CinemaResource extends ResourceCollection
+class CinemaScreenResource extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.
@@ -16,8 +16,9 @@ class CinemaResource extends ResourceCollection
     {
         return [
             'id' => $this->id,
-            'name' =>$this->name,
-            'city' =>$this->city,
+            'name' => $this->cinema->name,
+            'city' => $this->cinema->city,
+            'screen'=> $this->screen->name
         ];
     }
 }

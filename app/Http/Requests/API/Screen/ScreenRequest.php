@@ -30,8 +30,13 @@ class ScreenRequest extends FormRequest
             case 'POST':
                 switch ($currentMethod) {
                     case 'store':
-                        $rules = [
-                            'name' =>'required|string|max:60',
+                            $rules = [
+                                'name' => [
+                                    'required',
+                                    Rule::unique('seat_types')->where(function ($query) {
+                                        return $query->where('deleted', 0);
+                                    })
+                                ],
 
                         ];
                         break;
@@ -41,7 +46,12 @@ class ScreenRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                         $rules =[
-                            'name' =>'required|string|max:60',
+                            'name' => [
+                                'required',
+                                Rule::unique('seat_types')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
 
                         ];
                         break;
@@ -56,6 +66,7 @@ class ScreenRequest extends FormRequest
         return [
             'required' => ":attribute không được để trống",
             'string' => ":attribute phải là chữ",
+            'unique' => ':attribute đã tồn tại',
 
         ];
     }

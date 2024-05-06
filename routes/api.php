@@ -1,7 +1,10 @@
 <?php
 
 use App\Http\Controllers\Api\Cinema\CinemaController;
+use App\Http\Controllers\Api\CinemaScreen\CinemaScreenController;
 use App\Http\Controllers\Api\Screen\ScreenController;
+use App\Http\Controllers\API\Seat\SeatController;
+use App\Models\CinemaScreens;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +27,9 @@ use Illuminate\Support\Facades\Route;
 // //User-Permission route
 // require_once __DIR__ . '/user_permission.php';
 
-Route::apiResource('cinema',CinemaController::class);
-Route::apiResource('screen',ScreenController::class);
+ Route::apiResource('cinema',CinemaController::class);
+ Route::apiResource('screen',ScreenController::class);
+ Route::apiResource('aaa',CinemaScreenController::class);
+
+ Route::apiResource('seat',SeatController::class);
 

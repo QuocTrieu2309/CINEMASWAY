@@ -31,8 +31,8 @@ class CinemaScreenRequest extends FormRequest
                 switch($currentMethod) {
                     case 'store':
                         $rules = [
-                            'cinema_id' => 'required|exists:cinema,id',
-                            'screen_id' => 'required|exists:screen,id',
+                            'cinema_id' => 'required|exists:cinemas,id',
+                            'screen_id' => 'required|exists:screens,id',
                         ];
                         break;
                 }
@@ -41,8 +41,8 @@ class CinemaScreenRequest extends FormRequest
                 switch($currentMethod) {
                     case 'update':
                         $rules = [
-                            'cinema_id' => 'required|exists:cinema,id',
-                            'screen_id' => 'required|exists:screen,id',
+                            'cinema_id' => 'required|exists:cinemas,id',
+                            'screen_id' => 'required|exists:screens,id',
                         ];
                         break;
                 }

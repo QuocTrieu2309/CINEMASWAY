@@ -13,7 +13,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('_cinema__screens', function (Blueprint $table) {
             Schema::create('cinema_screens', function (Blueprint $table) {
                 $table->id();
                 $table->foreignIdFor(Cinema::class)->constrained();
@@ -21,7 +20,6 @@ return new class extends Migration
                 $table->integer('deleted')->default(0);
                 $table->timestamps();
             });
-        });
     }
 
     /**

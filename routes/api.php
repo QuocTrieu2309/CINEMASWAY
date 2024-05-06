@@ -19,17 +19,17 @@ use Illuminate\Support\Facades\Route;
 |
 */
 // Auth route
-// require_once __DIR__ . '/auth.php';
-// //Role route
-// require_once __DIR__ . '/role.php';
-// //Permission route
-// require_once __DIR__ . '/permission.php';
-// //User-Permission route
-// require_once __DIR__ . '/user_permission.php';
+require_once __DIR__ . '/auth.php';
+//Role route
+require_once __DIR__ . '/role.php';
+//Permission route
+require_once __DIR__ . '/permission.php';
+//User-Permission route
+require_once __DIR__ . '/user_permission.php';
 
- Route::apiResource('cinema',CinemaController::class);
- Route::apiResource('screen',ScreenController::class);
- Route::apiResource('aaa',CinemaScreenController::class);
+//  Route::apiResource('cinema',CinemaController::class);
+//  Route::apiResource('screen',ScreenController::class);
+//  Route::apiResource('aaa',CinemaScreenController::class);
 
- Route::apiResource('seat',SeatController::class);
+//  Route::apiResource('seat',SeatController::class);
 

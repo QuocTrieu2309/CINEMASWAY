@@ -23,7 +23,7 @@ class SeatController extends Controller
     {
         //
         try{
-            // $this->authorize('chekPermission',Seat::class);
+            $this->authorize('chekPermission',Seat::class);
             $this->limit = $this->handleLimit($request->get('limit'),$this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -50,7 +50,7 @@ class SeatController extends Controller
     {
         //
         try{
-            // $this->authorize('checkPermission',Seat::class );
+            $this->authorize('checkPermission',Seat::class );
 
            $seat = Seat::create($request->all());
            if(!$seat){
@@ -72,7 +72,7 @@ class SeatController extends Controller
     {
         //
         try {
-            // $this->authorize('checkPermission',Seat::class);
+            $this->authorize('checkPermission',Seat::class);
            $seat = Seat::where('id',$id)->where('deleted',0)->first();
            empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
            $data = [
@@ -91,7 +91,7 @@ class SeatController extends Controller
     {
         //
         try {
-            // $this->authorize('checkPermission',Seat::class);
+            $this->authorize('checkPermission',Seat::class);
           $seat = Seat::where('id',$id)->where('deleted',0)->first();
           empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
@@ -110,7 +110,7 @@ class SeatController extends Controller
         //
         try {
 
-            // $this->authorize('checkPermission',Seat::class);
+            $this->authorize('checkPermission',Seat::class);
           $seat = Seat::where('id',$id)->where('deleted',0)->first();
           empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
           $seat->deleted = 1;

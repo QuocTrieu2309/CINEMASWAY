@@ -24,7 +24,7 @@ class CinemaController extends Controller
     {
         //
         try{
-            //    $this->authorize('checkPermission',Cinema::class);
+               $this->authorize('checkPermission',Cinema::class);
             $this->limit == $this->handleLimit($request->get('limit'),$this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -54,7 +54,7 @@ class CinemaController extends Controller
     {
         //
         try{
-            //  $this->authorize('checkPermission',Cinema::class );
+             $this->authorize('checkPermission',Cinema::class );
 
             $cinema = Cinema::create($request->all());
             if(!$cinema){
@@ -73,7 +73,7 @@ class CinemaController extends Controller
     public function show($id)
     {
         try {
-            //  $this->authorize('checkPermission',Cinema::class);
+             $this->authorize('checkPermission',Cinema::class);
             $cinema = Cinema::where('id',$id)->where('deleted',0)->first();
             empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data = [
@@ -92,7 +92,7 @@ class CinemaController extends Controller
     {
 
         try {
-            //   $this->authorize('checkPermission',cinema::class);
+              $this->authorize('checkPermission',cinema::class);
             $cinema = Cinema::where('id',$id)->where('deleted',0)->first();
             empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
@@ -112,7 +112,7 @@ class CinemaController extends Controller
         //
         try {
 
-            //   $this->authorize('checkPermission',Cinema::class);
+              $this->authorize('checkPermission',Cinema::class);
             $cinema = Cinema::where('id',$id)->where('deleted',0)->first();
             empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $cinema->deleted = 1;

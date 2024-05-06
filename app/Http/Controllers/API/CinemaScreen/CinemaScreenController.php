@@ -21,7 +21,7 @@ class CinemaScreenController extends Controller
     public function index(Request $request)
     {
         try {
-            // $this->authorize('checkPermission',CinemaScreens::class);
+            $this->authorize('checkPermission',CinemaScreens::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
@@ -45,7 +45,7 @@ class CinemaScreenController extends Controller
     public function store(CinemaScreenRequest $request)
     {
         try {
-            // $this->authorize('checkPermission',CinemaScreens::class);
+            $this->authorize('checkPermission',CinemaScreens::class);
             $credential = CinemaScreens::where('cinema_id',$request->cinema_id)
                                         ->where('screen_id',$request->screen_id)->first();
             if($credential){
@@ -66,7 +66,7 @@ class CinemaScreenController extends Controller
 
     public function update(CinemaScreenRequest $request, string $id){
         try {
-            // $this->authorize('checkPermission',CinemaScreens::class);
+            $this->authorize('checkPermission',CinemaScreens::class);
             $cinemaScreens = CinemaScreens::find($id);
             empty($cinemaScreens) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $credential = CinemaScreens::where('cinema_id',$request->cinema_id)
@@ -88,7 +88,7 @@ class CinemaScreenController extends Controller
 
     public function destroy(string $id){
         try {
-            // $this->authorize('checkPermission',CinemaScreens::class);
+            $this->authorize('checkPermission',CinemaScreens::class);
             $CinemaScreens = CinemaScreens::where('deleted',0)->find($id);
             empty( $CinemaScreens) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $CinemaScreens->deleted = 1;

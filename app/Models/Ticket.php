@@ -29,23 +29,23 @@ class Ticket extends Model
      *
      * @return BelongsTo
      */
-    // public function booking(){
-    //     return $this->belongsTo(Booking::class);
-    // }
+    public function booking(){
+        return $this->belongsTo(Booking::class);
+    }
 
     /**
      *
      * @return BelongsTo
      */
-    // public function showtime(){
-    //     return $this->belongsTo(Showtime::class);
-    // }
+    public function showtime(){
+        return $this->belongsTo(Showtime::class);
+    }
 
     /**
      *
      * @return BelongsTo
      */
-    // public function seat(){
-    //     return $this->belongsTo(Seat::class);
-    // }
+    public function seat(){
+        return $this->belongsTo(Seat::class);
+    }
 }

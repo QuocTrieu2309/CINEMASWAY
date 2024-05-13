@@ -85,7 +85,7 @@ class MovieController extends Controller
         }       
     }
     
-    //DELETE api/dashboard/role/delete/{id}
+    //DELETE api/dashboard/movie/delete/{id}
     public function destroy(string $id){
         try {
             $this->authorize('checkPermission',Movie::class);

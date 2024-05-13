@@ -10,6 +10,7 @@ use App\Policies\RolePolicy;
 use App\Models\Role;
 use App\Models\Screen;
 use App\Models\SeatType;
+use App\Models\Showtime;
 use App\Models\TicketType;
 use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
@@ -18,6 +19,7 @@ use App\Policies\CinemaScreenPolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\ScreenPolicy;
 use App\Policies\SeatTypePolicy;
+use App\Policies\ShowtimePolicy;
 use App\Policies\TicketTypePolicy;
 use App\Policies\UserPermissionPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
@@ -29,6 +31,7 @@ class AuthServiceProvider extends ServiceProvider
         Permission::class => PermissionPolicy::class,
         Movie::class => MoviePolicy::class,
         SeatType::class => SeatTypePolicy::class,
+        Showtime::class => ShowtimePolicy::class,
         UserPermission::class => UserPermissionPolicy::class,
         Screen::class => ScreenPolicy::class,
         Cinema::class => CinemaPolicy::class,

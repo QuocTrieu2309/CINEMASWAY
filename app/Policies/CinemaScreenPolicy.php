@@ -8,7 +8,7 @@ use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Http\Response as HttpResponse;
 
-class MoviePolicy
+class CinemaScreenPolicy
 {
     public function checkPermission(User $user)
     {

@@ -1,7 +1,5 @@
 <?php
 
-use App\Models\CinemaScreen;
-use App\Models\SeatType;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -13,12 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('seats', function (Blueprint $table) {
+        Schema::create('translations', function (Blueprint $table) {
             $table->id();
-            $table->foreignIdFor(CinemaScreen::class)->constrained();
-            $table->foreignIdFor(SeatType::class)->constrained();
-            $table->string('status');
-            $table->string('seat_number');
+            $table->string('name');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
@@ -31,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('seats');
+        Schema::dropIfExists('translations');
     }
 };

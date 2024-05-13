@@ -2,7 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Screen\ScreenController;;
 
-Route::group(['prefix' => 'dashboard/seat_types'], function () {
+Route::group(['prefix' => 'dashboard/screen'], function () {
     // GET Seat Type Route
     Route::get('/', [ScreenController::class, 'index']);
     // GET Seat Type By Id Route

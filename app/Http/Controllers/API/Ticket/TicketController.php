@@ -24,11 +24,11 @@ class TicketController extends Controller
     public function index(Request $request)
     {
         try {
-            $this->authorize('checkPermission',Ticket::class);
+            $this->authorize('checkPermission', Ticket::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = Ticket::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $data = Ticket::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
                 'tickets' => TicketResource::collection($data),
                 'meta' => [
@@ -39,7 +39,7 @@ class TicketController extends Controller
                 ],
             ];
 
-            return ApiResponse(true,$result, Response::HTTP_OK, messageResponseData());
+            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -53,7 +53,7 @@ class TicketController extends Controller
     public function show($id)
     {
         try {
-            $this->authorize('checkPermission',Ticket::class);
+            $this->authorize('checkPermission', Ticket::class);
             $ticket = Ticket::where('id', $id)->where('deleted', 0)->first();
             empty($ticket) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data = [
@@ -94,7 +94,7 @@ class TicketController extends Controller
     public function update(TicketRequest $request, string $id)
     {
         try {
-            $this->authorize('checkPermission',Ticket::class);
+            $this->authorize('checkPermission', Ticket::class);
             $ticket = Ticket::where('id', $id)->where('deleted', 0)->first();
             empty($ticket) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $ticketUpdate = Ticket::where('id', $id)->update([

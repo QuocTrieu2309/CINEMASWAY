@@ -16,4 +16,9 @@ class ShowtimePolicy
             ? Response::allow()
             : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
     }
+    public function delete(User $user){
+        return CheckPermissionWithPolicy($user, 'Showtime')
+            ? Response::allow()
+            : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
+    }
 }

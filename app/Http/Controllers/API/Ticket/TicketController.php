@@ -30,7 +30,7 @@ class TicketController extends Controller
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Ticket::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'data' => TicketResource::collection($data),
+                'tickets' => TicketResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -116,10 +116,11 @@ class TicketController extends Controller
      * @param string $id
      * @return ApiResponse|
      */
+    //DELETE api/dashboard/ticket/delete/{id}
     public function destroy(string $id)
     {
         try {
-            $this->authorize('checkPermission', Ticket::class);
+            $this->authorize('delete', Ticket::class);
             $ticket = Ticket::where('id', $id)->where('deleted', 0)->first();
             empty($ticket) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $ticket->deleted = 1;

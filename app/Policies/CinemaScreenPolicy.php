@@ -12,7 +12,12 @@ class CinemaScreenPolicy
 {
     public function checkPermission(User $user)
     {
-        return CheckPermissionWithPolicy($user,'CinemaScreens')
+        return CheckPermissionWithPolicy($user,'Cinema-Screen')
+            ? Response::allow()
+            : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
+    }
+    public function delete(User $user){
+        return CheckPermissionWithPolicy($user,'Cinema-Screen')
             ? Response::allow()
             : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
     }

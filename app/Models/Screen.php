@@ -17,4 +17,8 @@ class Screen extends Model
         'created_at',
         'updated_at',
     ];
+
+    public function cinemaScreens(){
+        return $this->hasMany(CinemaScreen::class);
+    }
 }

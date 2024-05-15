@@ -32,7 +32,7 @@ class PasswordResetController extends Controller
                     'email' => 'Email'
                 ]
             );
-            if($validator->fails()){
+            if ($validator->fails()) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, ['errors' => $validator->errors()]);
             }
             $user = User::where('email', $request->email)->first();
@@ -41,20 +41,21 @@ class PasswordResetController extends Controller
             }
             $token = bin2hex(random_bytes(32));
             $validToken = DB::table('password_reset_tokens')
-            ->insert([
-             'email'=> $request->email,
-             'token' => $token,
-             'created_at'=> now()
-            ]);
-            Mail::to($request->email)->send(new ResetPassword($token,$request->email));
+                ->insert([
+                    'email' => $request->email,
+                    'token' => $token,
+                    'created_at' => now()
+                ]);
+            Mail::to($request->email)->send(new ResetPassword($token, $request->email));
             return ApiResponse(true,  $token, Response::HTTP_OK, 'Token đã được gửi tới email thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
     }
     // POST api/account/check-token
-    public function checkToken(Request $request){
-        $credential = DB::table('password_reset_tokens')->where('email',$request->email)->delete();
+    public function checkToken(Request $request)
+    {
+        $credential = DB::table('password_reset_tokens')->where('email', $request->email)->delete();
         return ApiResponse(true,  null, Response::HTTP_OK, 'Token hợp lệ');
     }
 }

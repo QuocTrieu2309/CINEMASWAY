@@ -3,15 +3,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\Screen\ScreenController;;
 
 Route::group(['prefix' => 'dashboard/screen'], function () {
-    // GET Seat Type Route
+    // GET Screen Route
     Route::get('/', [ScreenController::class, 'index']);
-    // GET Seat Type By Id Route
+    // GET Screen By Id Route
     Route::get('/{id}', [ScreenController::class, 'show']);
-    //Create Seat Type Route
+    //Create Screen Route
     Route::post('/create', [ScreenController::class, 'store']);
-    //  Update Seat Type Route
+    //  Update Screen Route
     Route::put('/update/{id}', [ScreenController::class, 'update']);
-    //  Delete Seat Type Route
+    //  Delete Screen Route
     Route::delete('/delete/{id}', [ScreenController::class, 'destroy']);
 });
 

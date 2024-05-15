@@ -12,7 +12,7 @@ class UserPermissionPolicy
 {
     public function checkPermission(User $user)
     {   
-        return CheckPermissionWithPolicy($user,'UserPermission')
+        return CheckPermissionWithPolicy($user,'User-Permission')
             ? Response::allow()
             : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
     }

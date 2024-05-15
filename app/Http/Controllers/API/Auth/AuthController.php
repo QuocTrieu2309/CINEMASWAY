@@ -9,6 +9,7 @@ use App\Http\Resources\API\Auth\AuthResource;
 use App\Http\Requests\API\Auth\AuthRequest;
 use Illuminate\Http\Response;
 use App\Models\User;
+use App\Models\Role;
 use Illuminate\Support\Facades\Hash;
 use App\Jobs\SendRegisterEmail;
 use Illuminate\Support\Facades\DB;
@@ -28,20 +29,27 @@ class AuthController extends Controller
     public function register(AuthRequest $request)
     {
         try {
+            $avatar = "https://res-console.cloudinary.com/cinemasway/thumbnails/v1/image/upload/v1715782888/Q0lORU1BU1dBWS9VU0VSL3ThuqNpX3h14buRbmdfd29ueHY5/drilldown";
+            $token = bin2hex(random_bytes(32));
+            $role = Role::where('name', 'Client')->first();
+            $role_id = $role->id;
             $credential = User::query()->create([
+                'role_id' => $role_id,
                 'full_name' => trim($request->get('full_name')),
-                'role_id' => trim($request->get('role_id')),
                 'email' => trim($request->get('email')),
                 'password' => Hash::make(trim($request->get('password'))),
                 'phone' => trim($request->get('phone')),
                 'birth_date' => trim($request->get('birth_date')),
                 'gender' => trim($request->get('gender')),
-                'role_id' => trim($request->get('role_id')),
+                'status' => User::STATUS_INACTIVE,
+                'avatar' => $avatar,
+                'email_verification_token' => $token
             ]);
+            $verificationUrl = route('verify-email', ['token' =>  $token]);
             if (!$credential) {
                 throw new \ErrorException('Đăng ký không thành công, vui lòng thử lại', Response::HTTP_BAD_REQUEST);
             }
-            SendRegisterEmail::dispatch($credential)->onQueue('emails');
+            SendRegisterEmail::dispatch($credential, $verificationUrl)->onQueue('emails');
             return ApiResponse(true, new AuthResource($credential), Response::HTTP_CREATED, 'Đăng ký tài khoản thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
@@ -91,4 +99,15 @@ class AuthController extends Controller
         }
     }
 
+    // Get /api/account/verify
+    public function verify($token)
+    {
+        $credential = User::where('email_verification_token', $token)->first();
+        if (!$credential) {
+            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Kích hoạt không thành công,Vui lòng thực hiện đăng ký lại');
+        }
+        $credential->status = User::STATUS_ACTIVE;
+        $credential->save();
+        // return view();
+    }
 }

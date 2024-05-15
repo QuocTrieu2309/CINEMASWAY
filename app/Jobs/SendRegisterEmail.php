@@ -19,9 +19,11 @@ class SendRegisterEmail implements ShouldQueue
      * Create a new job instance.
      */
     protected $user;
-    public function __construct(User $user)
+    protected $verificationUrl;
+    public function __construct($user,$verificationUrl)
     {
         $this->user = $user;
+        $this->verificationUrl = $verificationUrl;
     }
 
     /**
@@ -29,6 +31,6 @@ class SendRegisterEmail implements ShouldQueue
      */
     public function handle()
     {
-        Mail::to($this->user->email)->send(new RegisterConfirmation($this->user));
+        Mail::to($this->user->email)->send(new RegisterConfirmation($this->verificationUrl));
     }
 }

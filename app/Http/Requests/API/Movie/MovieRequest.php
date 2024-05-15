@@ -61,6 +61,8 @@ class MovieRequest extends FormRequest
                                     Movie::RATED_C18,
                                 ])
                             ],
+                            'image' => ['mimes:jpg,jpeg,png','max:2048'],
+                            'trailer' => ['required', 'url', 'max:255'],
                             'description' => 'string',
                         ];
                         break;
@@ -97,6 +99,8 @@ class MovieRequest extends FormRequest
                                     Movie::RATED_C18,
                                 ])
                             ],
+                            'image' => ['mimes:jpg,jpeg,png','max:2048'],
+                            'trailer' => ['required','url', 'max:255'],
                             'description' => 'string',
                         ];
                         break;
@@ -117,7 +121,9 @@ class MovieRequest extends FormRequest
             'after_or_equal' => ":attribute phải từ ngày hôm nay trở đi",
             'unique' => ":attribute đã tồn tại",
             'in' => ':attribute phải nằm trong :in',
-            'numeric' => ':attribute phải là số'
+            'numeric' => ':attribute phải là số',
+            'mimes' => ':attribute phải có định dạng thuộc :mimes',
+            'url' => ':attribute phải có định dạng là đường link'
         ];
     }
 
@@ -133,6 +139,8 @@ class MovieRequest extends FormRequest
             'status' => 'Trạng thái',
             'rated' => 'Điều kiện độ tuổi',
             'description' => 'Miêu tả',
+            'image' => 'Ảnh',
+            'trailer' => 'Trailer'
         ];
     }
 

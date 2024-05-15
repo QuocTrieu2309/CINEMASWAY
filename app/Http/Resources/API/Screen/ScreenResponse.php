@@ -5,7 +5,7 @@ namespace App\Http\Resources\API\Screen;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 
-class ScreenResponse extends ResourceCollection
+class ScreenResource extends ResourceCollection
 {
     /**
      * Transform the resource collection into an array.

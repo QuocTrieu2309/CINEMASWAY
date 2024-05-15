@@ -16,4 +16,9 @@ class RolePolicy
             ? Response::allow()
             : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
     }
+    public function delete(User $user){
+        return CheckPermissionWithPolicy($user,'Role')
+            ? Response::allow()
+            : Response::deny('Bạn không có quyền truy cập', HttpResponse::HTTP_FORBIDDEN);
+    }
 }

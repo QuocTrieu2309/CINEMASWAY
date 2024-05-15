@@ -33,7 +33,6 @@ class AuthRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'register':
                         $rules = [
-                            'role_id' => 'required',
                             'full_name' => 'required|string|regex:/^[\p{L}\s]+$/u|min:5',
                             'phone' => ['required', 'regex:/^0\d{9}$/'],
                             'email' => ['required', 'email', Rule::unique('users')],
@@ -54,7 +53,6 @@ class AuthRequest extends FormRequest
                             'phone' => ['required', 'regex:/^0\d{9}$/'],
                             'gender' => ['required', Rule::in([User::GENDER_MALE, User::GENDER_FEMALE])],
                             'birth_date' => 'required|date|before_or_equal:' . \Carbon\Carbon::now()->subYears(14)->format('Y-m-d'),
-                            // 'avatar' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
                         ];
                         break;
                     default:

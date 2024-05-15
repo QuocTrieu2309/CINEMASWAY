@@ -3,7 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\SeatType\SeatTypeController;
 
-Route::group(['prefix' => 'dashboard/seat_types'], function () {
+Route::group(['prefix' => 'dashboard/seat-type'], function () {
     // GET Seat Type Route
     Route::get('/', [SeatTypeController::class, 'index']);
     // GET Seat Type By Id Route

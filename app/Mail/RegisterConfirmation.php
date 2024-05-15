@@ -17,10 +17,11 @@ class RegisterConfirmation extends Mailable
     /**
      * Create a new message instance.
      */
-    public $user;
-    public function __construct(User $user)
+    public $verificationUrl;
+
+    public function __construct($verificationUrl)
     {
-        $this->user = $user;
+        $this->verificationUrl = $verificationUrl;
     }
     public function build()
     {

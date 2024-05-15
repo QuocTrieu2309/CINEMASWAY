@@ -26,7 +26,7 @@ class ShowtimeController extends Controller
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Showtime::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'data' => ShowtimeResource::collection($data),
+                'showtimes' => ShowtimeResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -87,7 +87,7 @@ class ShowtimeController extends Controller
     public function destroy($id)
     {
         try {
-            $this->authorize('checkPermission', Showtime::class);
+            $this->authorize('delete', Showtime::class);
             $showtime = Showtime::where('id', $id)->where('deleted', 0)->first();
             empty($showtime) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $showtime->deleted = 1;

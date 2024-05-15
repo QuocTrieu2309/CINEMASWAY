@@ -30,4 +30,7 @@ class TicketType extends Model
     {
         return $this->belongsTo(SeatType::class, 'seat_type_id', 'id');
     }
+    public function tickets(){
+        return $this->hasMany(Ticket::class);
+    }
 }

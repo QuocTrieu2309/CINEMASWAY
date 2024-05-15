@@ -13,6 +13,8 @@ Route::group(['prefix' => 'account'], function () {
     Route::post('/login',[AuthController::class,'login']);
     // Logout Route
     Route::post('/logout',[AuthController::class,'logout']);
+    // Verify email register Route
+    Route::get('/verify-email/{token}', [AuthController::class, 'verify'])->name('verify-email');
 
     // Get Profile Route
     Route::get('/profile',[ProfileController::class,'getProfile']);

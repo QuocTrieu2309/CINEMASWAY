@@ -44,8 +44,21 @@ function messageResponseActionSuccess()
 function CheckPermissionWithPolicy($model, $module)
 {
     $permissions = $model->permission()->pluck('name')->toArray();
-    if(!in_array($module,$permissions)){
+    if (!in_array($module, $permissions) || ($model->role->name !== 'Admin')) {
         return false;
     }
     return true;
+}
+// Get Public_id image Cloudinary
+function getImagePublicId($imageUrl)
+{
+    $pathParts = explode('/', parse_url($imageUrl, PHP_URL_PATH));
+    $filename = end($pathParts);
+    $publicId = pathinfo($filename, PATHINFO_FILENAME);
+
+    if (count($pathParts) > 2) {
+        $folderPath = implode('/', array_slice($pathParts, -3, 2));
+        $publicId = $folderPath . '/' . $publicId;
+    }
+    return $publicId;
 }

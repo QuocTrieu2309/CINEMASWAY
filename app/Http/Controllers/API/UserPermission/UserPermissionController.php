@@ -27,7 +27,7 @@ class UserPermissionController extends Controller
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = UserPermission::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'data' => UserPermissionResource::collection($data),
+                'userPermissions' => UserPermissionResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -90,7 +90,7 @@ class UserPermissionController extends Controller
     //DELETE api/dashboard/permission/delete/{id}
     public function destroy(string $id){
         try {
-            $this->authorize('checkPermission',UserPermission::class);
+            $this->authorize('delete',UserPermission::class);
             $userPermission = UserPermission::where('id',$id)->where('deleted',0)->first();
             empty( $userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $userPermission->deleted = 1;

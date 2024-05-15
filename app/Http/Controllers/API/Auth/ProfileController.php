@@ -38,32 +38,33 @@ class ProfileController extends Controller
     public function updateProfile(AuthRequest $request)
     {
         try {
+            $avatarCheck = "https://res-console.cloudinary.com/cinemasway/thumbnails/v1/image/upload/v1715782888/Q0lORU1BU1dBWS9VU0VSL3ThuqNpX3h14buRbmdfd29ueHY5/drilldown";
             $user = Auth::user();
             if (!$user) {
                 return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Vui lòng đăng nhập trước.');
             }
             $data = $request->except('avatar');
+            $avatarOld = $user->avatar;
             if ($request->hasFile('avatar')) {
-                $avatarUrl = Cloudinary::upload($request->file('avatar')->getRealPath(), array(
+                $uploadedImage = Cloudinary::upload($request->file('avatar')->getRealPath(), [
                     'folder' => 'CINEMASWAY/USER',
-                    'overwrite' => TRUE,
+                    'overwrite' => true,
                     'resource_type' => 'image'
-                ))->getSecurePath();
+                ]);
+                $avatarUrl = $uploadedImage->getSecurePath();
                 $data['avatar'] = $avatarUrl;
             } else {
-                $avatarOld = $user->avatar;
                 $data['avatar'] = $avatarOld;
             }
-            $user->full_name = $data['full_name'];
-            $user->phone = $data['phone'];
-            $user->gender = $data['gender'];
-            $user->birth_date = $data['birth_date'];
-            $user->avatar = $data['avatar'];
-            $userUpdated = $user->save();
-            if (!$userUpdated) {
-                $publicId = $this->getImagePublicId($avatarUrl);
+            $userUpdated = $user->update($data);
+            if (!$userUpdated && isset($avatarUrl)) {
+                $publicId = getImagePublicId($avatarUrl);
                 Cloudinary::destroy($publicId);
                 throw new \ErrorException('Cập nhật không thành công', Response::HTTP_BAD_REQUEST);
+            }
+            if ($userUpdated && isset($avatarUrl) && $avatarOld && ($avatarOld != $avatarCheck)) {
+                $publicId = getImagePublicId($avatarOld);
+                Cloudinary::destroy($publicId);
             }
             return ApiResponse(true, new AuthResource($user), Response::HTTP_OK, 'Cập nhật thông tin tài khoản thành công');
         } catch (\Exception $e) {

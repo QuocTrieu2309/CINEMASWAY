@@ -26,6 +26,8 @@ class Movie extends Model
         'rated',
         'like',
         'description',
+        'image',
+        'trailer',
         'deleted'
    ];
    protected $hidden = [

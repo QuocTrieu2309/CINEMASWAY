@@ -26,7 +26,7 @@ class TicketTypeController extends Controller
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = TicketType::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'data' => TicketTypeResource::collection($data),
+                'ticketTypes' => TicketTypeResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -85,7 +85,7 @@ class TicketTypeController extends Controller
     public function destroy($id)
     {
         try {
-            $this->authorize('checkPermission', TicketType::class);
+            $this->authorize('delete', TicketType::class);
             $ticketType = TicketType::where('id', $id)->where('deleted', 0)->first();
             empty($ticketType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $ticketType->deleted = 1;

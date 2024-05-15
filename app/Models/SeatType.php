@@ -21,7 +21,7 @@ class SeatType extends Model
     public function seats(){
         return $this->hasMany(Seat::class);
     }
-    public function ticketTypes(){
-        return $this->hasMany(TicketType::class);
+    public function ticketType(){
+        return $this->hasOne(TicketType::class);
     }
 }

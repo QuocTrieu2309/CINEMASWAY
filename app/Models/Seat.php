@@ -26,10 +26,10 @@ class Seat extends Model
         'updated_at',
     ];
     public function cinemaScreen(){
-        return $this->hasMany(CinemaScreen::class);
+        return $this->belongsTo(CinemaScreen::class);
     }
     public function seatType(){
-        return $this->hasOne(seatType::class);
+        return $this->belongsTo(SeatType::class);
     }
 
 

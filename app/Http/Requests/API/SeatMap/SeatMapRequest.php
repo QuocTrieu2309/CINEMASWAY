@@ -2,7 +2,12 @@
 
 namespace App\Http\Requests\API\SeatMap;
 
+use App\Models\Seat;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Response;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class SeatMapRequest extends FormRequest
 {
@@ -11,7 +16,7 @@ class SeatMapRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -21,8 +26,71 @@ class SeatMapRequest extends FormRequest
      */
     public function rules(): array
     {
+        $currentMethod = $this->route()->getActionMethod();
+        $rules = [];
+        switch ($this->method()) {
+            case 'POST':
+                switch ($currentMethod) {
+                    case 'store':
+                        $rules = [
+                            'cinema_screens_id' => [
+                                'required', 'exists:cinema_screens,id',
+                                Rule::unique('seat_maps')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
+                            'total_row' => 'required|integer|min:4|max:12',
+                            'total_column' => 'required|integer|min:4|max:12',
+                            'layout' => 'required|string|regex:/^[|NVCX]+$/|min:19',
+                        ];
+                        break;
+                }
+                break;
+            case 'PUT':
+                switch ($currentMethod) {
+                    case 'update':
+                        $rules = [
+                            'cinema_screens_id' => [
+                                'required', 'exists:cinema_screens,id',
+                                Rule::unique('seat_maps')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
+                            'total_row' => 'required|integer|min:4|max:12',
+                            'total_lumn' => 'required|integer|min:4|max:12',
+                            'layout' => 'required|string|regex:/^[|NVCX]+$/|min:19',
+                        ];
+                        break;
+                }
+                break;
+        }
+        return $rules;
+    }
+    public function messages()
+    {
         return [
-            //
+            'required' => ":attribute không được để trống",
+            'integer' => ":attribute phải là số nguyên",
+            'in' => ':attribute phải nằm trong :in',
+            'unique' => ':attribute đã tồn tại',
+            'min' => ':attribute phải lớn hơn hoặc bằng :min',
+            'max' => ':attribute phải nhỏ hơn hoặc bằng :max ',
+            'layout.min' =>':attribute có độ dài kí tự ít nhất là :min kí tự',
+            'exists' => ':attribute không tồn tại trong bảng quan hệ '
         ];
+    }
+    public function attributes()
+    {
+        return [
+            'cinema_screens_id' => 'Màn ảnh rạp chiếu',
+            'total_row' => 'Số hàng ghế',
+            'total_column' => 'Số dãy ghế',
+            'layout' => 'Sơ đồ ghế',
+        ];
+    }
+    public function failedValidation(Validator $validator)
+    {
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        throw (new ValidationException($validator, $response));
     }
 }

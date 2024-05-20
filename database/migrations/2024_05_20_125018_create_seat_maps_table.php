@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('seat_maps', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('cinema_screen_id');
+            $table->integer('total_row');
+            $table->integer('total_column');
+            $table->string('layout');
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->integer('deleted')->default(0);
+            $table->foreign('cinema_screen_id')->references('id')->on('cinema_screens');
             $table->timestamps();
         });
     }

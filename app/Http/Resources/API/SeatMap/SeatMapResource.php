@@ -14,6 +14,13 @@ class SeatMapResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'screen' => $this->cinemaScreen->screen->name,
+            'cinema' => $this->cinemaScreen->cinema->name,
+            'total_row' => $this->total_row,
+            'total_column' => $this->total_column,
+            'layout' => $this->layout
+        ];
     }
 }

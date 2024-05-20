@@ -59,7 +59,7 @@ class ScreenController extends Controller
             if(!$screen){
                 return ApiResponse(false,null,Response::HTTP_BAD_REQUEST,messageResponseActionFailed());
             }
-            return ApiResponse(false,null,Response::HTTP_BAD_REQUEST,messageResponseActionSuccess());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         }catch(\Exception $e){
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
 
@@ -93,7 +93,7 @@ class ScreenController extends Controller
     public function update(ScreenRequest $request, string $id)
     {
 
-        try{//
+        try{
           $this->authorize('checkPermission',Screen::class);
             $Screen = Screen::where('id',$id)->where('deleted',0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);

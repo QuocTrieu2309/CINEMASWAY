@@ -90,7 +90,7 @@ class CinemaScreenController extends Controller
                 ->where('id', '!=', $id)
                 ->first();
             if ($credential) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Quyền hạn của người dùng đã tồn tại.');
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Cập nhật thất bại.');
             }
             $screenUpdate = CinemaScreen::where('id', $id)->update([
                 'cinema_id' => $request->cinema_id,

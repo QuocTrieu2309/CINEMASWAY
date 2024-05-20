@@ -35,7 +35,7 @@ class CinemaRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('seat_types')->where(function ($query) {
+                                Rule::unique('cinemas')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
@@ -51,7 +51,7 @@ class CinemaRequest extends FormRequest
                             $rules = [
                                 'name' => [
                                     'required',
-                                    Rule::unique('seat_types')->where(function ($query) {
+                                    Rule::unique('cinemas')->where(function ($query) {
                                         return $query->where('deleted', 0);
                                     })
                                 ],
@@ -74,6 +74,15 @@ class CinemaRequest extends FormRequest
 
         ];
     }
+    public function attributes()
+    {
+        return [
+            'name' => 'Tên rạp',
+            'city' => 'địa chỉ rạp ',
+
+        ];
+    }
+
 
     public function failedValidation(Validator $validator)
     {

@@ -96,6 +96,14 @@ class SeatRequest extends FormRequest
 
         ];
     }
+    public function attributes()
+    {
+        return [
+            'seat_number' => 'Số ghế',
+            'status' => 'Trạng thái ghê',
+
+        ];
+    }
     public function failedValidation(Validator $validator)
     {
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Http\Requests\API\Screen;
-
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
+namespace App\Http\Requests\Api\Service;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
-class ScreenRequest extends FormRequest
+use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
+
+class ServiceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -33,10 +33,12 @@ class ScreenRequest extends FormRequest
                             $rules = [
                                 'name' => [
                                     'required',
-                                    Rule::unique('screens')->where(function ($query) {
+                                    Rule::unique('services')->where(function ($query) {
                                         return $query->where('deleted', 0);
                                     })
                                 ],
+                                'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                                'quantity' => 'required|integer|min:1'
 
                         ];
                         break;
@@ -48,10 +50,12 @@ class ScreenRequest extends FormRequest
                         $rules =[
                             'name' => [
                                 'required',
-                                Rule::unique('screens')->where(function ($query) {
+                                Rule::unique('services')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
+                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'quantity' => 'required|integer|min:1'
 
                         ];
                         break;
@@ -65,16 +69,18 @@ class ScreenRequest extends FormRequest
     {
         return [
             'required' => ":attribute không được để trống",
-            'string' => ":attribute phải là chữ",
+            'regex' =>':attribute định dạng kiểu tiền việt nam',
+            'integer' =>':attribute là kiểu số',
             'unique' => ':attribute đã tồn tại',
-
+            'min' => ':attribute phải > 1 ',
         ];
     }
     public function attributes()
     {
         return [
-            'name' => 'Tên Màn Hình',
-
+            'name' => 'Tên Dịch vụ',
+            'price' => 'Giá',
+            'quantity' =>' số lượng'
 
         ];
     }

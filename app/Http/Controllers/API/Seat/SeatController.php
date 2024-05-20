@@ -55,7 +55,7 @@ class SeatController extends Controller
             if (!$seat) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
-            return ApiResponse(false, true, Response::HTTP_BAD_REQUEST, messageResponseActionSuccess());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

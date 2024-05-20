@@ -12,7 +12,10 @@ class Transaction extends Model
 
 
     protected $fillable = [
-        'name',
+        'booking_id',
+        'subtotal',
+        'payment_method',
+        'status',
         'deleted'
     ];
     protected $hidden = [
@@ -26,7 +29,7 @@ class Transaction extends Model
      *
      * @return BelongsTo
      */
-    public function booking(){
-        return $this->belongsTo(Booking::class);
-    }
+    // public function booking(){
+    //     return $this->belongsTo(Booking::class);
+    // }
 }

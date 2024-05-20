@@ -29,7 +29,7 @@ class Transaction extends Model
      *
      * @return BelongsTo
      */
-    // public function booking(){
-    //     return $this->belongsTo(Booking::class);
-    // }
+    public function booking(){
+        return $this->belongsTo(Booking::class);
+    }
 }

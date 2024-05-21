@@ -59,7 +59,7 @@ class SeatMapController extends Controller
         }
     }
 
-    // POST api/dashboard/seat-type/create
+    // POST api/dashboard/seat-map/create
     public function store(SeatMapRequest $request)
     {
         try {
@@ -86,6 +86,44 @@ class SeatMapController extends Controller
                 }
             }
             $seatMap = SeatMap::create($request->all());
+            if (!$seatMap) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+
+    // POST api/dashboard/seat-map/update/{id}
+    public function update(SeatMapRequest $request, $id)
+    {
+        try {
+            // $this->authorize('checkPermission', SeatMap::class);
+            $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
+            empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $rowCheck = $request->total_row;
+            $columnCheck  = $request->total_column;
+            $layoutCheck  = $request->layout;
+            $row = substr_count($layoutCheck,'|');
+            if($rowCheck !=($row+1) ){
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,"Số hàng không đúng với sơ đồ ghế");
+            }
+            $layoutArr  = explode('|', $layoutCheck);
+            $layoutArrLenght = count($layoutArr);
+            for($i = 0; $i < $layoutArrLenght; $i++){
+                if(Str::length($layoutArr[$i]) != $columnCheck){
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,"Số ghế mỗi hàng không hợp lệ so với sơ đồ ghế");
+                }
+                if(($i<$layoutArrLenght-1) && Str::length($layoutArr[$i])!= Str::length($layoutArr[$i+1]) ){
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,"Số dãy ghế mỗi hàng không hợp lệ");
+                }
+                $count = countUniqueCharacters($layoutArr[$i]);
+                if($count >1 ){
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,"Mỗi hàng ghế chỉ bao gồm 1 loại ghế và ghế trống");
+                }
+            }
+            $credential = $seatMap->update($request->all());
             if (!$seatMap) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }

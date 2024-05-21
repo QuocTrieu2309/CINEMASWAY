@@ -9,5 +9,7 @@ Route::group(['prefix' => 'dashboard/seat-map'], function () {
     Route::get('/{id}', [SeatMapController::class, 'show']);
     //Create Seat-Map Route
     Route::post('/create', [SeatMapController::class, 'store']);
+    //  Update Seat Map Route
+    Route::put('/update/{id}', [SeatMapController::class, 'update']);
 
 });

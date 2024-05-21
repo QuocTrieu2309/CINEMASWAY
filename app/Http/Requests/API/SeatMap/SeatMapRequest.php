@@ -52,14 +52,14 @@ class SeatMapRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                         $rules = [
-                            'cinema_screens_id' => [
+                            'cinema_screen_id' => [
                                 'required', 'exists:cinema_screens,id',
-                                Rule::unique('seat_maps')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
-                                })
+                                // Rule::unique('seat_maps')->where(function ($query) {
+                                //     return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                // })
                             ],
                             'total_row' => 'required|integer|min:4|max:12',
-                            'total_lumn' => 'required|integer|min:4|max:12',
+                            'total_column' => 'required|integer|min:4|max:12',
                             'layout' => ['required', 'string', 'regex:/^(?:[NVCX]+\|?)*[NVCX]+$/'],
                         ];
                         break;

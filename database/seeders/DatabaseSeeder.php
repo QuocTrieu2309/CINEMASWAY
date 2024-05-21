@@ -53,5 +53,13 @@ class DatabaseSeeder extends Seeder
         \App\Models\Translation::query()->create([
             'name'=> "Phu de tieng Viet",
         ]);
+
+        \App\Models\BookingService::query()->create([
+            'service_id'=> "1",
+            'booking_id'=> "1",
+            'quantity'=> "1",
+            'subtotal'=>"123456",
+
+        ]);
     }
 }

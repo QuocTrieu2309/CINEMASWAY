@@ -66,16 +66,38 @@ class BookingServiceControlle extends Controller
     /**
      * Update the specified resource in storage.
      */
+    //UPDATE api/dashboard/booking-service/update/{id}
+
     public function update(BookingServiceRequest $request, string $id)
     {
-
+        try {
+            $this->authorize('checkPermission', BookingService::class);
+            $bookingService = BookingService::find($id);
+            empty($bookingService) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $credential = BookingService:: //where('booking_id', $request->booking_id)
+                where('service_id', $request->service_id)
+                ->where('id', '!=', $id)
+                ->first();
+            if ($credential) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Cập nhật thất bại');
+            }
+            $screenUpdate = BookingService::where('id', $id)->update([
+                // 'booking_id' => $request->booking_id,
+                'service_id' => $request->service_id,
+            ]);
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
+     //DELETE api/dashboard/booking-service/delete/{id}
+
     public function destroy(string $id)
     {
-        //
+
     }
 }

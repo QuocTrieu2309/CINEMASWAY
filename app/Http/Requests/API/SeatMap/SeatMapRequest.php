@@ -33,7 +33,7 @@ class SeatMapRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'cinema_screens_id' => [
+                            'cinema_screen_id' => [
                                 'required', 'exists:cinema_screens,id',
                                 Rule::unique('seat_maps')->where(function ($query) {
                                     return $query->where('deleted', 0);
@@ -41,7 +41,9 @@ class SeatMapRequest extends FormRequest
                             ],
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_column' => 'required|integer|min:4|max:12',
-                            'layout' => 'required|string|regex:/^[|NVCX]+$/|min:19',
+                            'layout' => ['required', 'string', 
+                            'regex:/^(?:[NVCX]+\|?)*[NVCX]+$/'
+                        ],
                         ];
                         break;
                 }
@@ -58,7 +60,7 @@ class SeatMapRequest extends FormRequest
                             ],
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_lumn' => 'required|integer|min:4|max:12',
-                            'layout' => 'required|string|regex:/^[|NVCX]+$/|min:19',
+                            'layout' => ['required', 'string', 'regex:/^(?:[NVCX]+\|?)*[NVCX]+$/'],
                         ];
                         break;
                 }
@@ -76,7 +78,9 @@ class SeatMapRequest extends FormRequest
             'min' => ':attribute phải lớn hơn hoặc bằng :min',
             'max' => ':attribute phải nhỏ hơn hoặc bằng :max ',
             'layout.min' =>':attribute có độ dài kí tự ít nhất là :min kí tự',
-            'exists' => ':attribute không tồn tại trong bảng quan hệ '
+            'exists' => ':attribute không tồn tại trong bảng quan hệ ',
+            'regex' => ':attribute không đúng định dạng',
+            'string' => ':attribute phải là chuỗi'
         ];
     }
     public function attributes()

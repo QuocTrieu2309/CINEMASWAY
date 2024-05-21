@@ -7,4 +7,7 @@ Route::group(['prefix' => 'dashboard/seat-map'], function () {
     Route::get('/', [SeatMapController::class, 'index']);
     // GET Seat-Map By ID Route 
     Route::get('/{id}', [SeatMapController::class, 'show']);
+    //Create Seat-Map Route
+    Route::post('/create', [SeatMapController::class, 'store']);
+
 });

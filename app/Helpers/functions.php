@@ -62,3 +62,13 @@ function getImagePublicId($imageUrl)
     }
     return $publicId;
 }
+// Check kí tự trong 1 hàng
+function countUniqueCharacters($string)
+{
+    $stringWithoutX = str_replace('X', '', $string);
+    $uniqueChars = [];
+    for ($i = 0; $i < strlen($stringWithoutX); $i++) {
+        $uniqueChars[$stringWithoutX[$i]] = true;
+    }
+    return count($uniqueChars);
+}

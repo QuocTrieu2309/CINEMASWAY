@@ -68,7 +68,12 @@ class ScreenRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'string' => ":attribute phải là chữ",
             'unique' => ':attribute đã tồn tại',
-
+        ];
+    }
+    public function attributes()
+    {
+        return [
+            'name' => 'Tên Màn Hình',
         ];
     }
 

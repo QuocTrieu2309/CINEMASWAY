@@ -40,7 +40,6 @@ class CinemaRequest extends FormRequest
                             ],
                             'city' => 'required|string|max:60',
                         ];
-
                         break;
                 }
                 break;
@@ -55,7 +54,6 @@ class CinemaRequest extends FormRequest
                                 })
                             ],
                             'city' => 'required|string|max:60',
-
                         ];
                         break;
                 }
@@ -63,17 +61,21 @@ class CinemaRequest extends FormRequest
         }
         return $rules;
     }
-
     public function messages()
     {
         return [
             'required' => ":attribute không được để trống",
             'string' => ":attribute phải là chữ",
             'unique' => ':attribute đã tồn tại',
-
         ];
     }
-
+    public function attributes()
+    {
+        return [
+            'name' => 'Tên rạp',
+            'city' => 'địa chỉ rạp ',
+        ];
+    }
     public function failedValidation(Validator $validator)
     {
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());

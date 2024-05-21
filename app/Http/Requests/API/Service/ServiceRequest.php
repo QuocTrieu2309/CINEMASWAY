@@ -40,7 +40,6 @@ class ServiceRequest extends FormRequest
                             ],
                             'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
                             'quantity' => 'required|integer|min:1'
-
                         ];
                         break;
                 }
@@ -57,7 +56,6 @@ class ServiceRequest extends FormRequest
                             ],
                             'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
                             'quantity' => 'required|integer|min:1'
-
                         ];
                         break;
                 }
@@ -82,7 +80,6 @@ class ServiceRequest extends FormRequest
             'name' => 'Tên Dịch vụ',
             'price' => 'Giá',
             'quantity' => ' số lượng'
-
         ];
     }
 

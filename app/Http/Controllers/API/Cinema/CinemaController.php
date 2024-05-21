@@ -58,7 +58,7 @@ class CinemaController extends Controller
             if (!$cinema) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
-            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionSuccess());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -89,7 +89,6 @@ class CinemaController extends Controller
     //UPDATE api/dashboard/cinema/update/{id}
     public function update(CinemaRequest $request, string $id)
     {
-
         try {
             $this->authorize('checkPermission', cinema::class);
             $cinema = Cinema::where('id', $id)->where('deleted', 0)->first();

@@ -25,7 +25,6 @@ class CinemaRequest extends FormRequest
      */
     public function rules(): array
     {
-
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
         switch ($this->method()) {
@@ -35,11 +34,11 @@ class CinemaRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('seat_types')->where(function ($query) {
+                                Rule::unique('cinemas')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                        'city' => 'required|string|max:60',
+                            'city' => 'required|string|max:60',
                         ];
 
                         break;
@@ -48,13 +47,13 @@ class CinemaRequest extends FormRequest
             case 'PUT':
                 switch ($currentMethod) {
                     case 'update':
-                            $rules = [
-                                'name' => [
-                                    'required',
-                                    Rule::unique('seat_types')->where(function ($query) {
-                                        return $query->where('deleted', 0);
-                                    })
-                                ],
+                        $rules = [
+                            'name' => [
+                                'required',
+                                Rule::unique('cinemas')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
                             'city' => 'required|string|max:60',
 
                         ];
@@ -77,9 +76,7 @@ class CinemaRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null,Response ::HTTP_BAD_REQUEST, $validator->errors());
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
         throw (new ValidationException($validator, $response));
     }
-
 }
-

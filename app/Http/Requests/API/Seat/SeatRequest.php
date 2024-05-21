@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests\API\Seat;
+
 use App\Models\Seat;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -59,24 +60,24 @@ class SeatRequest extends FormRequest
             case 'PUT':
                 switch ($currentMethod) {
                     case 'update':
-                            $rules = [
-                                'seat_number' => [
-                                    'required',
-                                    Rule::unique('seats')->where(function ($query) {
-                                        return $query->where('deleted', 0);
-                                    })
-                                ],
+                        $rules = [
+                            'seat_number' => [
+                                'required',
+                                Rule::unique('seats')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
 
-                                'status' => [
-                                    'required',
-                                    Rule::in([
-                                        Seat::STATUS_EMPTYSEAT,
-                                        Seat::STATUS_BELINGHOLD,
-                                        Seat::STATUS_SELECTED,
-                                        Seat::STATUS_SOLD,
-                                        Seat::STATUS_RESERVED,
-                                    ])
-                                ],
+                            'status' => [
+                                'required',
+                                Rule::in([
+                                    Seat::STATUS_EMPTYSEAT,
+                                    Seat::STATUS_BELINGHOLD,
+                                    Seat::STATUS_SELECTED,
+                                    Seat::STATUS_SOLD,
+                                    Seat::STATUS_RESERVED,
+                                ])
+                            ],
 
 
                         ];
@@ -101,9 +102,4 @@ class SeatRequest extends FormRequest
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
         throw (new ValidationException($validator, $response));
     }
-
 }
-
-
-
-

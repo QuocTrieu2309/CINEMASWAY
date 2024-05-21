@@ -90,11 +90,14 @@ class SeatRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'in' => ':attribute phải nằm trong :in',
             'unique' => ':attribute đã tồn tại',
+            'exists' => ":attribute không tồn tại",
         ];
     }
     public function attributes()
     {
         return [
+            'seat_type_id' => 'Loai Ghế',
+            'cinema_screens_id' => 'Trung gian rạp chiếu và màn chiếu',
             'seat_number' => 'Số ghế',
             'status' => 'Trạng thái ghê',
         ];

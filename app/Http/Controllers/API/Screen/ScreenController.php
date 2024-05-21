@@ -50,7 +50,6 @@ class ScreenController extends Controller
     //POST api/dashboard/screen/create
     public function store(ScreenRequest $request)
     {
-        //
         try {
             $this->authorize('checkPermission', Screen::class);
             $screen = Screen::create($request->all());

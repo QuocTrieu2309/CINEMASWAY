@@ -54,9 +54,9 @@ class SeatMapRequest extends FormRequest
                         $rules = [
                             'cinema_screen_id' => [
                                 'required', 'exists:cinema_screens,id',
-                                // Rule::unique('seat_maps')->where(function ($query) {
-                                //     return $query->where('deleted', 0)->where('id', '!=', $this->id);
-                                // })
+                                Rule::unique('seat_maps')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
                             ],
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_column' => 'required|integer|min:4|max:12',

@@ -1,4 +1,5 @@
 <?php
+
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\SeatMap\SeatMapController;
 
@@ -11,5 +12,6 @@ Route::group(['prefix' => 'dashboard/seat-map'], function () {
     Route::post('/create', [SeatMapController::class, 'store']);
     //  Update Seat Map Route
     Route::put('/update/{id}', [SeatMapController::class, 'update']);
-
+    //  Delete Seat Map Route
+    Route::delete('/delete/{id}', [SeatMapController::class, 'destroy']);
 });

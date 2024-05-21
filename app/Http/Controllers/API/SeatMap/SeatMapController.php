@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\Config;
 
 class SeatMapController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:sanctum');
-    // }
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
 
     //GET api/dashboard/seat-map
     public function index(Request $request)
@@ -63,7 +63,7 @@ class SeatMapController extends Controller
     public function store(SeatMapRequest $request)
     {
         try {
-            // $this->authorize('checkPermission', SeatMap::class);
+            $this->authorize('checkPermission', SeatMap::class);
             $rowCheck = $request->total_row;
             $columnCheck  = $request->total_column;
             $layoutCheck  = $request->layout;
@@ -99,7 +99,7 @@ class SeatMapController extends Controller
     public function update(SeatMapRequest $request, $id)
     {
         try {
-            // $this->authorize('checkPermission', SeatMap::class);
+            $this->authorize('checkPermission', SeatMap::class);
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
             empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $rowCheck = $request->total_row;
@@ -124,7 +124,7 @@ class SeatMapController extends Controller
                 }
             }
             $credential = $seatMap->update($request->all());
-            if (!$seatMap) {
+            if (!$credential) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
@@ -132,5 +132,19 @@ class SeatMapController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
+    
+    //DELETE api/dashboard/seat-map/delete/{id}
+    public function destroy(string $id)
+    {
+        try {
+            $this->authorize('delete', SeatMap::class);
+            $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
+            empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $seatMap->deleted = 1;
+            $seatMap->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

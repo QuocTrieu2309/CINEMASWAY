@@ -99,8 +99,18 @@ class ServiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
+        //  GET /api/dashboard/service/delete/{id}
     public function destroy(string $id)
     {
-        //
+        try {
+            $this->authorize('delete', Service::class);
+            $service = Service::where('id', $id)->where('deleted', 0)->first();
+            empty($service) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $service->deleted = 1;
+            $service->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 }

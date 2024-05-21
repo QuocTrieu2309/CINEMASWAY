@@ -10,6 +10,7 @@ use App\Policies\RolePolicy;
 use App\Models\Role;
 use App\Models\Screen;
 use App\Models\Seat;
+use App\Models\SeatMap;
 use App\Models\SeatType;
 use App\Models\Showtime;
 use App\Models\Ticket;
@@ -21,6 +22,7 @@ use App\Policies\CinemaPolicy;
 use App\Policies\CinemaScreenPolicy;
 use App\Policies\PermissionPolicy;
 use App\Policies\ScreenPolicy;
+use App\Policies\SeatMapPolicy;
 use App\Policies\SeatPolicy;
 use App\Policies\SeatTypePolicy;
 use App\Policies\ShowtimePolicy;
@@ -45,7 +47,8 @@ class AuthServiceProvider extends ServiceProvider
         TicketType::class => TicketTypePolicy::class,
         Translation::class => TranslationPolicy::class,
         Ticket::class => TicketPolicy::class,
-        Seat::class => SeatPolicy::class
+        Seat::class => SeatPolicy::class,
+        SeatMap::class => SeatMapPolicy::class
     ];
 
     public function boot(): void

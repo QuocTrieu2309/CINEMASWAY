@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\BookingService;
 use App\Models\Cinema;
 use App\Models\CinemaScreen;
 use App\Models\Movie;
@@ -19,6 +20,7 @@ use App\Models\TicketType;
 use App\Models\Translation;
 use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
+use App\Policies\BookingServicePolicy;
 use App\Policies\CinemaPolicy;
 use App\Policies\CinemaScreenPolicy;
 use App\Policies\PermissionPolicy;
@@ -52,6 +54,7 @@ class AuthServiceProvider extends ServiceProvider
         Seat::class => SeatPolicy::class,
         SeatMap::class => SeatMapPolicy::class,
         Service::class => ServicePolicy::class,
+        BookingService::class => BookingServicePolicy::class,
     ];
 
     public function boot(): void

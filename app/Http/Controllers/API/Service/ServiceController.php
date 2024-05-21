@@ -45,6 +45,7 @@ class ServiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
+    // GET /api/dashboard/create
     public function store(ServiceRequest $request)
     {
         try {
@@ -64,7 +65,17 @@ class ServiceController extends Controller
      */
     public function show(string $id)
     {
-        //
+        try {
+            $this->authorize('checkPermission', Service::class);
+            $service = Service::where('id', $id)->where('deleted', 0)->first();
+            empty($service) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'service' => new ServiceResource($service),
+            ];
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 
     /**

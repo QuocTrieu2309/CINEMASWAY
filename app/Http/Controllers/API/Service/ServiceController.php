@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\Service\ServiceRequest;
 use App\Http\Resources\Api\Service\ServiceResource;
 use App\Models\Service;
+use GuzzleHttp\Psr7\ServerRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
@@ -44,9 +45,18 @@ class ServiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ServiceRequest $request)
     {
-        //
+        try {
+            $this->authorize('checkPermission', Service::class);
+            $service = Service::create($request->all());
+            if (!$service) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 
     /**

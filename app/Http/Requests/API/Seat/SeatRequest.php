@@ -67,7 +67,6 @@ class SeatRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-
                             'status' => [
                                 'required',
                                 Rule::in([
@@ -78,8 +77,6 @@ class SeatRequest extends FormRequest
                                     Seat::STATUS_RESERVED,
                                 ])
                             ],
-
-
                         ];
                         break;
                 }
@@ -93,8 +90,6 @@ class SeatRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'in' => ':attribute phải nằm trong :in',
             'unique' => ':attribute đã tồn tại',
-
-
         ];
     }
     public function attributes()

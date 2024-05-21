@@ -53,7 +53,6 @@ class ScreenRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-
                         ];
                         break;
                 }

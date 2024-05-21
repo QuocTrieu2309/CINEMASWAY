@@ -94,10 +94,19 @@ class BookingServiceControlle extends Controller
     /**
      * Remove the specified resource from storage.
      */
-     //DELETE api/dashboard/booking-service/delete/{id}
+    //DELETE api/dashboard/booking-service/delete/{id}
 
     public function destroy(string $id)
     {
-
+        try {
+            $this->authorize('delete', BookingService::class);
+            $bookingService = BookingService::where('deleted', 0)->find($id);
+            empty($bookingService) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $bookingService->deleted = 1;
+            $bookingService->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 }

@@ -52,7 +52,7 @@ class CinemaRequest extends FormRequest
                                 'name' => [
                                     'required',
                                     Rule::unique('cinemas')->where(function ($query) {
-                                        return $query->where('deleted', 0);
+                                        return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                     })
                                 ],
                             'city' => 'required|string|max:60',

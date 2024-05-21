@@ -68,7 +68,7 @@ class BookingServiceControlle extends Controller
      */
     public function update(BookingServiceRequest $request, string $id)
     {
-        
+
     }
 
     /**

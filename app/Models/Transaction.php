@@ -10,7 +10,10 @@ class Transaction extends Model
 {
     use HasFactory;
 
+    const STATUS_SUCCESS = 'Đã thanh toán';
 
+    const STATUS_FAIL = 'Chưa thanh toán';
+    
     protected $fillable = [
         'booking_id',
         'subtotal',

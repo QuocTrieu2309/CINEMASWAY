@@ -14,6 +14,13 @@ class BookingResource extends ResourceCollection
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'user_id' => $this->user_id,
+            'ticket_type_id' => $this->ticket_type_id,
+            'showtime_id' => $this->showtime_id,
+            'quantity' => $this->quantity,
+            'subtotal' => $this->subtotal,
+            'status' => $this->status
+        ];
     }
 }

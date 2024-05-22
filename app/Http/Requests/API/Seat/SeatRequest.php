@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Requests\API\Seat;
+
 use App\Models\Seat;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -59,26 +60,23 @@ class SeatRequest extends FormRequest
             case 'PUT':
                 switch ($currentMethod) {
                     case 'update':
-                            $rules = [
-                                'seat_number' => [
-                                    'required',
-                                    Rule::unique('seats')->where(function ($query) {
-                                        return $query->where('deleted', 0);
-                                    })
-                                ],
-
-                                'status' => [
-                                    'required',
-                                    Rule::in([
-                                        Seat::STATUS_EMPTYSEAT,
-                                        Seat::STATUS_BELINGHOLD,
-                                        Seat::STATUS_SELECTED,
-                                        Seat::STATUS_SOLD,
-                                        Seat::STATUS_RESERVED,
-                                    ])
-                                ],
-
-
+                        $rules = [
+                            'seat_number' => [
+                                'required',
+                                Rule::unique('seats')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                })
+                            ],
+                            'status' => [
+                                'required',
+                                Rule::in([
+                                    Seat::STATUS_EMPTYSEAT,
+                                    Seat::STATUS_BELINGHOLD,
+                                    Seat::STATUS_SELECTED,
+                                    Seat::STATUS_SOLD,
+                                    Seat::STATUS_RESERVED,
+                                ])
+                            ],
                         ];
                         break;
                 }
@@ -92,8 +90,16 @@ class SeatRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'in' => ':attribute phải nằm trong :in',
             'unique' => ':attribute đã tồn tại',
-
-
+            'exists' => ":attribute không tồn tại",
+        ];
+    }
+    public function attributes()
+    {
+        return [
+            'seat_type_id' => 'Loai Ghế',
+            'cinema_screens_id' => 'Trung gian rạp chiếu và màn chiếu',
+            'seat_number' => 'Số ghế',
+            'status' => 'Trạng thái ghê',
         ];
     }
     public function failedValidation(Validator $validator)
@@ -101,9 +107,4 @@ class SeatRequest extends FormRequest
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
         throw (new ValidationException($validator, $response));
     }
-
 }
-
-
-
-

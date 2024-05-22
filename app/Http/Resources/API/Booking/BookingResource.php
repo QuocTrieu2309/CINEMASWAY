@@ -3,9 +3,9 @@
 namespace App\Http\Resources\API\Booking;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class BookingResource extends ResourceCollection
+class BookingResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

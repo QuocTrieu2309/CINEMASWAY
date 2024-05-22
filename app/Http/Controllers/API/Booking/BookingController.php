@@ -61,9 +61,19 @@ class BookingController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Booking $booking)
+    public function show($id)
     {
-        //
+        try {
+            $this->authorize('checkPermission', Booking::class);
+            $booking = Booking::where('id', $id)->where('deleted', 0)->first();
+            empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'booking' => new  BookingResource($booking),
+            ];
+            return ApiResponse(true,   $data, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 
     /**

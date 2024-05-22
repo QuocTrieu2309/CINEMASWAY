@@ -6,6 +6,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Faker\Factory as Faker;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -56,5 +58,26 @@ class DatabaseSeeder extends Seeder
         ]);
 
         \App\Models\Transaction::factory(10)->create();
+
+
+        // $faker = Faker::create();
+        // for ($i = 0; $i < 5; $i++) {
+        //     DB::table('vouchers')->insert([
+        //         'user_id' => 1,
+        //         'code' => $faker->unique()->lexify('??????'),
+        //         'pin' => $faker->numerify('######'),
+        //         'type' => $faker->randomElement(['discount', 'gift']),
+        //         'value' => $faker->randomFloat(2, 10, 100),
+        //         'start_date' => $faker->dateTimeBetween('-1 month', '+1 month'),
+        //         'end_date' => $faker->dateTimeBetween('+1 month', '+2 months'),
+        //         'status' => $faker->randomElement(['active', 'expired', 'pending']),
+        //         'description' => $faker->text,
+        //         'created_by' => $faker->numberBetween(1, 10),
+        //         'updated_by' => $faker->numberBetween(1, 10),
+        //         'deleted' => 0,
+        //         'created_at' => now(),
+        //         'updated_at' => now(),
+        //     ]);
+        // }
     }
 }

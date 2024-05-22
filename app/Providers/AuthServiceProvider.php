@@ -20,6 +20,7 @@ use App\Models\Translation;
 use App\Models\Transaction;
 use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
+use App\Models\Voucher;
 use App\Policies\CinemaPolicy;
 use App\Policies\CinemaScreenPolicy;
 use App\Policies\PermissionPolicy;
@@ -34,6 +35,7 @@ use App\Policies\TicketTypePolicy;
 use App\Policies\TranslationPolicy;
 use App\Policies\UserPermissionPolicy;
 use App\Policies\TransactionPolicy;
+use App\Policies\VoucherPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
 class AuthServiceProvider extends ServiceProvider
@@ -55,6 +57,7 @@ class AuthServiceProvider extends ServiceProvider
         SeatMap::class => SeatMapPolicy::class,
         Service::class => ServicePolicy::class,
         Transaction::class => TransactionPolicy::class,
+        Voucher::class => VoucherPolicy::class,
     ];
 
     public function boot(): void

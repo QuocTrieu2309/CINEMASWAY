@@ -15,9 +15,6 @@ class BookingController extends Controller
     {
         $this->middleware('auth:sanctum');
     }
-    /**
-     * Display a listing of the resource.
-     */
     // //GET api/dashboard/booking
     public function index(Request $request)
     {
@@ -41,26 +38,15 @@ class BookingController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         //
     }
-
-    /**
-     * Display the specified resource.
-     */
+    //GET api/dashboard/booking/{id}
     public function show($id)
     {
         try {
@@ -75,28 +61,26 @@ class BookingController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
     public function edit(Booking $booking)
     {
         //
     }
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Booking $booking)
     {
         //
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Booking $booking)
+    //GET api/dashboard/booking/delete/{id}
+    public function destroy($id)
     {
-        //
+        try {
+            $this->authorize('delete', Booking::class);
+            $booking = Booking::where('id', $id)->where('deleted', 0)->first();
+            empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $booking->deleted = 1;
+            $booking->save();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 }

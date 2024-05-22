@@ -13,7 +13,19 @@ return new class extends Migration
     {
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger("user_id");
+            $table->unsignedBigInteger("ticket_type_id");
+            $table->unsignedBigInteger("showtime_id");
+            $table->unsignedInteger("quantity")->comment("So luong ve");
+            $table->unsignedDecimal("subtotal")->comment("Tong so tien");
+            $table->string("status");
+            $table->unsignedBigInteger("created_by")->nullable();
+            $table->unsignedBigInteger("updated_by")->nullable();
+            $table->integer('deleted')->default(0);
             $table->timestamps();
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('ticket_type_id')->references('id')->on('ticket_types');
+            $table->foreign('showtime_id')->references('id')->on('showtimes');
         });
     }
 

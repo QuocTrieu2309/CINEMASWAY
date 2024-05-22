@@ -21,29 +21,28 @@ class ScreenController extends Controller
      * Display a listing of the resource.
      */
     //GET api/dashboard/screen
-    public function index( Request $request)
+    public function index(Request $request)
     {
-        try{
-              $this->authorize('checkPermission',Screen::class);
-            $this->limit == $this->handleLimit($request->get('limit'),$this->limit);
+        try {
+            $this->authorize('checkPermission', Screen::class);
+            $this->limit == $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = Screen::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
-             $result = [
-                'screens' =>ScreenResource::collection($data),
+            $data = Screen::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $result = [
+                'screens' => ScreenResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
                     'currentPage' => $data->currentPage(),
                     'lastPage' => $data->lastPage(),
                 ]
-         ];
-            return ApiResponse(true,$result, Response::HTTP_OK, messageResponseData());
-        }catch (\Exception $e) {
+            ];
+            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-
+        }
     }
-}
 
     /**
      * Store a newly created resource in storage.
@@ -51,18 +50,15 @@ class ScreenController extends Controller
     //POST api/dashboard/screen/create
     public function store(ScreenRequest $request)
     {
-        //
-        try{
-              $this->authorize('checkPermission',Screen::class );
-
+        try {
+            $this->authorize('checkPermission', Screen::class);
             $screen = Screen::create($request->all());
-            if(!$screen){
-                return ApiResponse(false,null,Response::HTTP_BAD_REQUEST,messageResponseActionFailed());
+            if (!$screen) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
-            return ApiResponse(false,null,Response::HTTP_BAD_REQUEST,messageResponseActionSuccess());
-        }catch(\Exception $e){
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-
         }
     }
 
@@ -72,17 +68,16 @@ class ScreenController extends Controller
     // GET /api/dashboard/screen/{id}
     public function show($id)
     {
-        try{
-              $this->authorize('checkPermission',Screen::class);
-            $screen = Screen::where('id',$id)->where('deleted',0)->first();
+        try {
+            $this->authorize('checkPermission', Screen::class);
+            $screen = Screen::where('id', $id)->where('deleted', 0)->first();
             empty($screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data = [
                 'screen' => new  ScreenResource($screen),
             ];
-            return ApiResponse(true, $data , Response::HTTP_OK,messageResponseActionSuccess());
-
-        }catch(\Exception $e){
-            return ApiResponse (false, null , Response::HTTP_BAD_GATEWAY, $e->getMessage());
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
 
@@ -92,16 +87,15 @@ class ScreenController extends Controller
     //UPDATE api/dashboard/screen/update/{id}
     public function update(ScreenRequest $request, string $id)
     {
-
-        try{//
-          $this->authorize('checkPermission',Screen::class);
-            $Screen = Screen::where('id',$id)->where('deleted',0)->first();
+        try {
+            $this->authorize('checkPermission', Screen::class);
+            $Screen = Screen::where('id', $id)->where('deleted', 0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
             $ScreenUpdated = Screen::where('id', $id)->update($request->all());
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
-        } catch(\Exception $e){
-            return ApiResponse (false, null , Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
 
@@ -112,8 +106,8 @@ class ScreenController extends Controller
     public function destroy(string $id)
     {
         try {
-             $this->authorize('delete',Screen::class);
-            $Screen = Screen::where('id',$id)->where('deleted',0)->first();
+            $this->authorize('delete', Screen::class);
+            $Screen = Screen::where('id', $id)->where('deleted', 0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $Screen->deleted = 1;
             $Screen->save();
@@ -122,6 +116,4 @@ class ScreenController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
 }
-

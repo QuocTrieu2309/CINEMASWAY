@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Resources\API\Seat;
+namespace App\Http\Resources\API\SeatMap;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class SeatResource extends JsonResource
+class SeatMapResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +16,11 @@ class SeatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->cinemaScreen->cinema->name,
-            'city' => $this->cinemaScreen->cinema->city,
             'screen' => $this->cinemaScreen->screen->name,
-            'seat_number' => $this->seat_number,
-            'status' => $this->status,
+            'cinema' => $this->cinemaScreen->cinema->name,
+            'total_row' => $this->total_row,
+            'total_column' => $this->total_column,
+            'layout' => $this->layout
         ];
     }
 }

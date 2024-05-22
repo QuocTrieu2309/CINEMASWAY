@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Http\Requests\API\Cinema;
+namespace App\Http\Requests\Api\Service;
 
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Validation\Rule;
+use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Contracts\Validation\Validator;
 
-class CinemaRequest extends FormRequest
+class ServiceRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -34,11 +34,12 @@ class CinemaRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('cinemas')->where(function ($query) {
+                                Rule::unique('services')->where(function ($query) {
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                            'city' => 'required|string|max:60',
+                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'quantity' => 'required|integer|min:1'
                         ];
                         break;
                 }
@@ -49,11 +50,12 @@ class CinemaRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('cinemas')->where(function ($query) {
+                                Rule::unique('services')->where(function ($query) {
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-                            'city' => 'required|string|max:60',
+                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'quantity' => 'required|integer|min:1'
                         ];
                         break;
                 }
@@ -61,21 +63,26 @@ class CinemaRequest extends FormRequest
         }
         return $rules;
     }
+
     public function messages()
     {
         return [
             'required' => ":attribute không được để trống",
-            'string' => ":attribute phải là chữ",
+            'regex' => ':attribute định dạng kiểu tiền việt nam',
+            'integer' => ':attribute là kiểu số',
             'unique' => ':attribute đã tồn tại',
+            'min' => ':attribute phải > 1 ',
         ];
     }
     public function attributes()
     {
         return [
-            'name' => 'Tên rạp',
-            'city' => 'địa chỉ rạp ',
+            'name' => 'Tên Dịch vụ',
+            'price' => 'Giá',
+            'quantity' => ' số lượng'
         ];
     }
+
     public function failedValidation(Validator $validator)
     {
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());

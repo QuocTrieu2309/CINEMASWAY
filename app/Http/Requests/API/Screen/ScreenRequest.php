@@ -7,6 +7,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+
 class ScreenRequest extends FormRequest
 {
     /**
@@ -30,13 +31,13 @@ class ScreenRequest extends FormRequest
             case 'POST':
                 switch ($currentMethod) {
                     case 'store':
-                            $rules = [
-                                'name' => [
-                                    'required',
-                                    Rule::unique('seat_types')->where(function ($query) {
-                                        return $query->where('deleted', 0);
-                                    })
-                                ],
+                        $rules = [
+                            'name' => [
+                                'required',
+                                Rule::unique('screens')->where(function ($query) {
+                                    return $query->where('deleted', 0);
+                                })
+                            ],
 
                         ];
                         break;
@@ -45,14 +46,13 @@ class ScreenRequest extends FormRequest
             case 'PUT':
                 switch ($currentMethod) {
                     case 'update':
-                        $rules =[
+                        $rules = [
                             'name' => [
                                 'required',
-                                Rule::unique('seat_types')->where(function ($query) {
-                                    return $query->where('deleted', 0);
+                                Rule::unique('screens')->where(function ($query) {
+                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-
                         ];
                         break;
                 }
@@ -67,13 +67,18 @@ class ScreenRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'string' => ":attribute phải là chữ",
             'unique' => ':attribute đã tồn tại',
-
+        ];
+    }
+    public function attributes()
+    {
+        return [
+            'name' => 'Tên Màn Hình',
         ];
     }
 
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null,Response ::HTTP_BAD_REQUEST, $validator->errors());
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
         throw (new ValidationException($validator, $response));
     }
 }

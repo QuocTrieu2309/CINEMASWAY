@@ -16,9 +16,7 @@ class BookingServiceControlle extends Controller
     {
         $this->middleware('auth:sanctum');
     }
-    /**
-     * Display a listing of the resource.
-     */
+
     //GET api/dashboard/booking-service
     public function index(Request $request)
     {
@@ -85,7 +83,6 @@ class BookingServiceControlle extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
     /**
      * Remove the specified resource from storage.
      */

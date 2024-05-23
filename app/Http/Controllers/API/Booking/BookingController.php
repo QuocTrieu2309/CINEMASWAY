@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Http\Controllers\Api\Booking;
+namespace App\Http\Controllers\API\Booking;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\Booking\BookingRequest;
 use App\Http\Resources\API\Booking\BookingResource;
 use App\Models\Booking;
 use Illuminate\Http\Request;
@@ -38,10 +39,6 @@ class BookingController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    public function create()
-    {
-        //
-    }
     public function store(Request $request)
     {
         //
@@ -61,13 +58,18 @@ class BookingController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    public function edit(Booking $booking)
+    //GET api/dashboard/booking/update/{id}
+    public function update(BookingRequest $request, $id)
     {
-        //
-    }
-    public function update(Request $request, Booking $booking)
-    {
-        //
+        try {
+            $this->authorize('checkPermission', Booking::class);
+            $booking = Booking::where('id', $id)->where('deleted', 0)->first();
+            empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $bookingUpdated = Booking::where('id', $id)->update($request->all());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
     //GET api/dashboard/booking/delete/{id}
     public function destroy($id)

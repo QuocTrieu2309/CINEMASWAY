@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\Config;
 
 class VoucherController extends Controller
 {
-    public function __construct(){
+    public function __construct()
+    {
         $this->middleware('auth:sanctum');
     }
     /**
@@ -52,22 +53,35 @@ class VoucherController extends Controller
     {
         try {
             $this->authorize('checkPermission', Voucher::class);
-
             $inputData = $request->all();
             $vouchersData = isset($inputData['vouchers']) ? $inputData['vouchers'] : [$inputData];
-
             if (!is_array($vouchersData)) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Invalid data format');
             }
-
             $createdVouchers = [];
+            $errorMessages = [];
+            foreach ($vouchersData as $index => $voucherData) {
+                $existingCode = Voucher::where('code', $voucherData['code'])->first();
+                $existingPin = Voucher::where('pin', $voucherData['pin'])->first();
 
-            foreach ($vouchersData as $voucherData) {
-                $voucher = Voucher::create($voucherData);
-                if (!$voucher) {
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                if ($existingCode && $existingPin) {
+                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã code: ' . $voucherData['code'] . ' và mã pin: ' . $voucherData['pin'] . ' đã tồn tại.';
+                } elseif ($existingCode) {
+                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã code: ' . $voucherData['code'] . ' đã tồn tại.';
+                } elseif ($existingPin) {
+                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã pin: ' . $voucherData['pin'] . ' đã tồn tại.';
+                } else {
+                    $voucher = Voucher::create($voucherData);
+                    if (!$voucher) {
+                        $errorMessages[] = 'Voucher số ' . ($index + 1) . ': ' . messageResponseActionFailed();
+                    } else {
+                        $createdVouchers[] = $voucher;
+                    }
                 }
-                $createdVouchers[] = $voucher;
+            }
+
+            if (!empty($errorMessages)) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $errorMessages);
             }
 
             return ApiResponse(true, $createdVouchers, Response::HTTP_OK, messageResponseActionSuccess());
@@ -75,6 +89,8 @@ class VoucherController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+
 
     /**
      * Display the specified resource.

@@ -24,86 +24,6 @@ class VoucherRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    // public function rules(): array
-    // {
-    //     $currentMethod = $this->route()->getActionMethod();
-    //     $rules = [];
-    //     switch ($this->method()) {
-    //         case 'POST':
-    //             switch ($currentMethod) {
-    //                 case 'store':
-    //                     $rules = [
-    //                         'code' => [
-    //                             'required',
-    //                             'string',
-    //                             'max:60',
-    //                             Rule::unique('vouchers')->where(function ($query) {
-    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
-    //                             })
-    //                         ],
-    //                         'pin' => [
-    //                             'required',
-    //                             'string',
-    //                             'max:60',
-    //                             Rule::unique('vouchers')->where(function ($query) {
-    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
-    //                             })
-    //                         ],
-    //                         'type' => 'required|string|max:60',
-    //                         'value' => 'required|numeric|max:60',
-    //                         'start_date' => 'required|date',
-    //                         'end_date' => 'required|date|after:start_date',
-    //                         'status' => [
-    //                             'required',
-    //                             Rule::in([
-    //                                 Voucher::STATUS_ACTIVE,
-    //                                 Voucher::STATUS_EXPIRED,
-    //                             ])
-    //                         ],
-    //                         'description' => 'required|string|max:1000',
-    //                     ];
-    //                     break;
-    //             }
-    //             break;
-    //         case 'PUT':
-    //             switch ($currentMethod) {
-    //                 case 'update':
-    //                     $rules = [
-    //                         'code' => [
-    //                             'required',
-    //                             'string',
-    //                             'max:60',
-    //                             Rule::unique('vouchers')->where(function ($query) {
-    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
-    //                             })
-    //                         ],
-    //                         'pin' => [
-    //                             'required',
-    //                             'string',
-    //                             'max:60',
-    //                             Rule::unique('vouchers')->where(function ($query) {
-    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
-    //                             })
-    //                         ],
-    //                         'type' => 'required|string|max:60',
-    //                         'value' => 'required|numeric|max:60',
-    //                         'start_date' => 'required|date_format:Y-m-d H:i:s',
-    //                         'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
-    //                         'status' => [
-    //                             'required',
-    //                             Rule::in([
-    //                                 Voucher::STATUS_ACTIVE,
-    //                                 Voucher::STATUS_EXPIRED,
-    //                             ])
-    //                         ],
-    //                         'description' => 'required|string|max:1000',
-    //                     ];
-    //                     break;
-    //             }
-    //             break;
-    //     }
-    //     return $rules;
-    // }
     public function rules(): array
     {
         $currentMethod = $this->route()->getActionMethod();
@@ -131,7 +51,7 @@ class VoucherRequest extends FormRequest
                                 })
                             ],
                             'type' => 'required|string|max:60',
-                            'value' => 'required|numeric|max:10000',
+                            'value' => 'required|numeric',
                             'start_date' => 'required|date',
                             'end_date' => 'required|date|after:start_date',
                             'status' => [
@@ -180,7 +100,7 @@ class VoucherRequest extends FormRequest
                                 })
                             ],
                             'type' => 'required|string|max:60',
-                            'value' => 'required|numeric|max:10000',
+                            'value' => 'required|numeric',
                             'start_date' => 'required|date_format:Y-m-d H:i:s',
                             'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
                             'status' => [

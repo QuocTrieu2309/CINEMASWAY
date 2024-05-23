@@ -17,7 +17,7 @@ return new class extends Migration
             $table->unsignedBigInteger("ticket_type_id");
             $table->unsignedBigInteger("showtime_id");
             $table->unsignedInteger("quantity")->comment("So luong ve");
-            $table->unsignedDecimal("subtotal", $precision = 8, $scale = 2)->comment("Tong so tien");
+            $table->unsignedDecimal("subtotal", 8, 2)->comment("Tong so tien");
             $table->string("status");
             $table->unsignedBigInteger("created_by")->nullable();
             $table->unsignedBigInteger("updated_by")->nullable();

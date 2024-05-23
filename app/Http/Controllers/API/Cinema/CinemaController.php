@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Cinema;
+namespace App\Http\Controllers\API\Cinema;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Cinema\CinemaRequest;

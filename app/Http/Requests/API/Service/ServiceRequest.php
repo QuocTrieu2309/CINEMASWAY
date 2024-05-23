@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api\Service;
+namespace App\Http\Requests\API\Service;
 
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;

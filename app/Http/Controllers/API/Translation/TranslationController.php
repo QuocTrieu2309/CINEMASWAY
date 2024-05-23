@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Translation;
+namespace App\Http\Controllers\API\Translation;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Translation\TranslationRequest;

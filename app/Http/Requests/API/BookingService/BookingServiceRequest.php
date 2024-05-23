@@ -1,7 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Api\BookingService;
-
+namespace App\Http\Requests\API\BookingService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;

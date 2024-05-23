@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Api\BookingService;
+namespace App\Http\Controllers\API\BookingService;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\BookingService\BookingServiceRequest;
-use App\Http\Resources\Api\BookingService\BookingServiceResource;
+use App\Http\Requests\API\BookingService\BookingServiceRequest;
+use App\Http\Resources\API\BookingService\BookingServiceResource;
 use App\Models\BookingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;

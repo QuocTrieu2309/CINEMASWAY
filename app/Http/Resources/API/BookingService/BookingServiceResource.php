@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources\Api\BookingService;
+namespace App\Http\Resources\API\BookingService;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;

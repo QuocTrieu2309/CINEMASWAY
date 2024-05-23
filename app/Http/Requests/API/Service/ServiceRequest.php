@@ -38,7 +38,7 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'price' => ['required', 'numeric', 'regex:/^\d+(\.\d{1,2})?$/'],
                             'quantity' => 'required|integer|min:1'
                         ];
                         break;
@@ -54,7 +54,7 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'price' => ['required', 'numeric', 'regex:/^\d+(\.\d{1,2})?$/'],
                             'quantity' => 'required|integer|min:1'
                         ];
                         break;
@@ -63,12 +63,11 @@ class ServiceRequest extends FormRequest
         }
         return $rules;
     }
-
     public function messages()
     {
         return [
             'required' => ":attribute không được để trống",
-            'regex' => ':attribute định dạng kiểu tiền việt nam',
+            'regex' => ':attributecó định dạng hợp lệ với tối đa 2 chữ số thập phân',
             'integer' => ':attribute là kiểu số',
             'unique' => ':attribute đã tồn tại',
             'min' => ':attribute phải > 1 ',

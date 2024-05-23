@@ -16,9 +16,8 @@ class SeatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->cinemaScreen->cinema->name,
-            'city' => $this->cinemaScreen->cinema->city,
-            'screen' => $this->cinemaScreen->screen->name,
+            'cinema_screens_id' => $this->cinema_screens_id,
+            'seat_type_id' => $this->seat_type_id,
             'seat_number' => $this->seat_number,
             'status' => $this->status,
         ];

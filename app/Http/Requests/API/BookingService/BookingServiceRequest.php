@@ -29,50 +29,13 @@ class BookingServiceRequest extends FormRequest
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
         switch ($this->method()) {
-            case 'POST':
-                switch ($currentMethod) {
-                    case 'store':
-                        $rules = [
-                            'booking_id' => [
-                                'required',
-                                'numeric',
-                                // Rule::exists('bookings', 'id')->where(function ($query) {
-                                //     return $query->where('deleted', 0);
-                                // }),
-                            ],
-                            'service_id' => [
-                                'required',
-                                'numeric',
-                                Rule::exists('services', 'id')->where(function ($query) {
-                                    $query->where('deleted', 0);
-                                }),
-                            ],
-                            'subtotal' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
-                            'quantity' => 'required|integer|min:0'
-
-                        ];
-                        break;
-                }
-                break;
             case 'PUT':
                 switch ($currentMethod) {
                     case 'update':
                         $rules = [
-                            'booking_id' => [
-                                'required',
-                                'numeric',
-                                // Rule::exists('bookings', 'id')->where(function ($query) {
-                                //     return $query->where('deleted', 0);
-                                // }),
-                            ],
-                            'service_id' => [
-                                'required',
-                                'numeric',
-                                Rule::exists('services', 'id')->where(function ($query) {
-                                    $query->where('deleted', 0);
-                                }),
-                            ],
-                            'subtotal' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'booking_id' => 'required|exists:bookings,id',
+                            'service_id' => 'required|exists:services,id',
+                            'subtotal' => ['required', 'numeric', 'regex:/^\d+(\.\d{1,2})?$/'],
                             'quantity' => 'required|numeric|min:1'
                         ];
                         break;
@@ -87,7 +50,7 @@ class BookingServiceRequest extends FormRequest
             'required' => ":attribute không được để trống",
             'exists' => ":attribute không tồn tại",
             'numeric' => ":attribute phải là một số",
-            'regex' => ':attribute định dạng kiểu tiền việt nam',
+            'regex' => ':attribute định dạng hợp lệ với tối đa 2 chữ số thập phân',
             'min' => ':attribute phải > 1 ',
         ];
     }

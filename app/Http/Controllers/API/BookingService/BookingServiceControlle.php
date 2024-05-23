@@ -19,6 +19,7 @@ class BookingServiceControlle extends Controller
     /**
      * Display a listing of the resource.
      */
+    //GET api/dashboard/booking-service
     public function index(Request $request)
     {
         try {
@@ -41,9 +42,6 @@ class BookingServiceControlle extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
-
-
     /**
      * Display the specified resource.
      */
@@ -74,16 +72,13 @@ class BookingServiceControlle extends Controller
             $this->authorize('checkPermission', BookingService::class);
             $bookingService = BookingService::find($id);
             empty($bookingService) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $credential = BookingService:: //where('booking_id', $request->booking_id)
-                where('service_id', $request->service_id)
-                ->where('id', '!=', $id)
-                ->first();
-            if ($credential) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Cập nhật thất bại');
-            }
-            $screenUpdate = BookingService::where('id', $id)->update([
-                // 'booking_id' => $request->booking_id,
-                'service_id' => $request->service_id,
+            $bookingService = BookingService::where('id', $id)->where('deleted', 0)->first();
+            empty($bookingService) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $bookingServiceUpdate = BookingService::where('id', $id)->update([
+                'booking_id' => $request->get('booking_id') ?? $bookingService->booking_id,
+                'service_id' => $request->get('service_id') ?? $bookingService->service_id,
+                'quantity' => $request->get('quantity') ?? $bookingService->quantity,
+                'subtotal' => $request->get('subtotal') ?? $bookingService->subtotal,
             ]);
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
@@ -95,7 +90,6 @@ class BookingServiceControlle extends Controller
      * Remove the specified resource from storage.
      */
     //DELETE api/dashboard/booking-service/delete/{id}
-
     public function destroy(string $id)
     {
         try {

@@ -22,10 +22,10 @@ class BookingService extends Model
         'created_at',
         'updated_at',
     ];
-    // public function bookings()
-    // {
-    //     return $this->belongsTo(Booking::class);
-    // }
+    public function bookings()
+    {
+        return $this->belongsTo(Booking::class);
+    }
     public function services()
     {
         return $this->belongsTo(ServicePolicy::class);

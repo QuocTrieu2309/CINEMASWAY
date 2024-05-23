@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Voucher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\Voucher\VoucherRequest;
 use App\Http\Resources\API\Voucher\VoucherResource;
 use App\Models\Voucher;
 use Illuminate\Http\Request;
@@ -16,6 +17,8 @@ class VoucherController extends Controller
     }
     /**
      * Display a listing of the resource.
+     *
+     * GET api/dashboard/vouher
      */
     public function index(Request $request)
     {
@@ -42,10 +45,35 @@ class VoucherController extends Controller
 
     /**
      * Store a newly created resource in storage.
+     *
+     * POST api/dashboard/voucher/create
      */
-    public function store(Request $request)
+    public function store(VoucherRequest $request)
     {
-        //
+        try {
+            $this->authorize('checkPermission', Voucher::class);
+
+            $inputData = $request->all();
+            $vouchersData = isset($inputData['vouchers']) ? $inputData['vouchers'] : [$inputData];
+
+            if (!is_array($vouchersData)) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Invalid data format');
+            }
+
+            $createdVouchers = [];
+
+            foreach ($vouchersData as $voucherData) {
+                $voucher = Voucher::create($voucherData);
+                if (!$voucher) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                }
+                $createdVouchers[] = $voucher;
+            }
+
+            return ApiResponse(true, $createdVouchers, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
     }
 
     /**

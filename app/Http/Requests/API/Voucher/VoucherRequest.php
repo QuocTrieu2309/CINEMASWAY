@@ -24,21 +24,102 @@ class VoucherRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
+    // public function rules(): array
+    // {
+    //     $currentMethod = $this->route()->getActionMethod();
+    //     $rules = [];
+    //     switch ($this->method()) {
+    //         case 'POST':
+    //             switch ($currentMethod) {
+    //                 case 'store':
+    //                     $rules = [
+    //                         'code' => [
+    //                             'required',
+    //                             'string',
+    //                             'max:60',
+    //                             Rule::unique('vouchers')->where(function ($query) {
+    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
+    //                             })
+    //                         ],
+    //                         'pin' => [
+    //                             'required',
+    //                             'string',
+    //                             'max:60',
+    //                             Rule::unique('vouchers')->where(function ($query) {
+    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
+    //                             })
+    //                         ],
+    //                         'type' => 'required|string|max:60',
+    //                         'value' => 'required|numeric|max:60',
+    //                         'start_date' => 'required|date',
+    //                         'end_date' => 'required|date|after:start_date',
+    //                         'status' => [
+    //                             'required',
+    //                             Rule::in([
+    //                                 Voucher::STATUS_ACTIVE,
+    //                                 Voucher::STATUS_EXPIRED,
+    //                             ])
+    //                         ],
+    //                         'description' => 'required|string|max:1000',
+    //                     ];
+    //                     break;
+    //             }
+    //             break;
+    //         case 'PUT':
+    //             switch ($currentMethod) {
+    //                 case 'update':
+    //                     $rules = [
+    //                         'code' => [
+    //                             'required',
+    //                             'string',
+    //                             'max:60',
+    //                             Rule::unique('vouchers')->where(function ($query) {
+    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
+    //                             })
+    //                         ],
+    //                         'pin' => [
+    //                             'required',
+    //                             'string',
+    //                             'max:60',
+    //                             Rule::unique('vouchers')->where(function ($query) {
+    //                                 return $query->where('deleted', 0)->where('id', '!=', $this->id);
+    //                             })
+    //                         ],
+    //                         'type' => 'required|string|max:60',
+    //                         'value' => 'required|numeric|max:60',
+    //                         'start_date' => 'required|date_format:Y-m-d H:i:s',
+    //                         'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
+    //                         'status' => [
+    //                             'required',
+    //                             Rule::in([
+    //                                 Voucher::STATUS_ACTIVE,
+    //                                 Voucher::STATUS_EXPIRED,
+    //                             ])
+    //                         ],
+    //                         'description' => 'required|string|max:1000',
+    //                     ];
+    //                     break;
+    //             }
+    //             break;
+    //     }
+    //     return $rules;
+    // }
     public function rules(): array
     {
         $currentMethod = $this->route()->getActionMethod();
         $rules = [];
+
         switch ($this->method()) {
             case 'POST':
                 switch ($currentMethod) {
                     case 'store':
-                        $rules = [
+                        $voucherRules = [
                             'code' => [
                                 'required',
                                 'string',
                                 'max:60',
                                 Rule::unique('vouchers')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                    return $query->where('deleted', 0);
                                 })
                             ],
                             'pin' => [
@@ -46,11 +127,11 @@ class VoucherRequest extends FormRequest
                                 'string',
                                 'max:60',
                                 Rule::unique('vouchers')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                    return $query->where('deleted', 0);
                                 })
                             ],
                             'type' => 'required|string|max:60',
-                            'value' => 'required|numeric|max:60',
+                            'value' => 'required|numeric|max:10000',
                             'start_date' => 'required|date',
                             'end_date' => 'required|date|after:start_date',
                             'status' => [
@@ -62,6 +143,19 @@ class VoucherRequest extends FormRequest
                             ],
                             'description' => 'required|string|max:1000',
                         ];
+
+                        $rules = [
+                            'vouchers' => 'required|array',
+                            'vouchers.*.code' => $voucherRules['code'],
+                            'vouchers.*.pin' => $voucherRules['pin'],
+                            'vouchers.*.type' => $voucherRules['type'],
+                            'vouchers.*.value' => $voucherRules['value'],
+                            'vouchers.*.start_date' => $voucherRules['start_date'],
+                            'vouchers.*.end_date' => $voucherRules['end_date'],
+                            'vouchers.*.status' => $voucherRules['status'],
+                            'vouchers.*.description' => $voucherRules['description'],
+                        ];
+
                         break;
                 }
                 break;
@@ -86,9 +180,9 @@ class VoucherRequest extends FormRequest
                                 })
                             ],
                             'type' => 'required|string|max:60',
-                            'value' => 'required|numeric|max:60',
-                            'start_date' => 'required|date',
-                            'end_date' => 'required|date|after:start_date',
+                            'value' => 'required|numeric|max:10000',
+                            'start_date' => 'required|date_format:Y-m-d H:i:s',
+                            'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
                             'status' => [
                                 'required',
                                 Rule::in([
@@ -116,6 +210,32 @@ class VoucherRequest extends FormRequest
             'date' => 'Trường :attribute phải là ngày hợp lệ.',
             'end_date.after' => 'Trường :attribute phải là ngày sau ngày bắt đầu.',
             'in' => ':attribute phải nằm trong :in',
+            'vouchers.required' => 'Danh sách :attribute là bắt buộc.',
+            'vouchers.array' => 'Danh sách :attribute phải là một mảng.',
+            'vouchers.*.code.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.code.string' => 'Trường :attribute phải là chuỗi ký tự.',
+            'vouchers.*.code.max' => 'Trường :attribute không được dài quá :max ký tự.',
+            'vouchers.*.code.unique' => 'Trường :attribute đã tồn tại.',
+            'vouchers.*.pin.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.pin.string' => 'Trường :attribute phải là chuỗi ký tự.',
+            'vouchers.*.pin.max' => 'Trường :attribute không được dài quá :max ký tự.',
+            'vouchers.*.pin.unique' => 'Trường :attribute đã tồn tại.',
+            'vouchers.*.type.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.type.string' => 'Trường :attribute phải là chuỗi ký tự.',
+            'vouchers.*.type.max' => 'Trường :attribute không được dài quá :max ký tự.',
+            'vouchers.*.value.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.value.numeric' => 'Trường :attribute phải là số.',
+            'vouchers.*.value.max' => 'Trường :attribute không được vượt quá :max.',
+            'vouchers.*.start_date.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.start_date.date' => 'Trường :attribute phải là ngày hợp lệ.',
+            'vouchers.*.end_date.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.end_date.date' => 'Trường :attribute phải là ngày hợp lệ.',
+            'vouchers.*.end_date.after' => 'Trường :attribute phải là ngày sau ngày bắt đầu.',
+            'vouchers.*.status.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.status.in' => 'Trường :attribute phải nằm trong :in.',
+            'vouchers.*.description.required' => 'Trường :attribute là bắt buộc.',
+            'vouchers.*.description.string' => 'Trường :attribute phải là chuỗi ký tự.',
+            'vouchers.*.description.max' => 'Trường :attribute không được dài quá :max ký tự.',
         ];
     }
 
@@ -130,6 +250,15 @@ class VoucherRequest extends FormRequest
             'end_date' => 'Ngày kết thúc',
             'status' => 'Trạng thái',
             'description' => 'Mô tả',
+            'vouchers' => 'voucher',
+            'vouchers.*.code' => 'mã',
+            'vouchers.*.pin' => 'mã pin',
+            'vouchers.*.type' => 'loại',
+            'vouchers.*.value' => 'giá trị',
+            'vouchers.*.start_date' => 'ngày bắt đầu',
+            'vouchers.*.end_date' => 'ngày kết thúc',
+            'vouchers.*.status' => 'trạng thái',
+            'vouchers.*.description' => 'mô tả',
         ];
     }
 

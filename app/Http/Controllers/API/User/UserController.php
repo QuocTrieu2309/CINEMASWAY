@@ -38,4 +38,19 @@ class UserController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+    // GET One api/dashboard/{id}
+    public function show($id)
+    {
+        try {
+            $this->authorize('checkPermission', User::class);
+            $user = User::find($id);
+            empty($user) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'user' => new  UserResource($user),
+            ];
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

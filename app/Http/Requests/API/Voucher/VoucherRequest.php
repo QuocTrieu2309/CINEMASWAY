@@ -65,7 +65,7 @@ class VoucherRequest extends FormRequest
                         ];
 
                         $rules = [
-                            'vouchers' => 'required|array',
+                            'vouchers' => 'array',
                             'vouchers.*.code' => $voucherRules['code'],
                             'vouchers.*.pin' => $voucherRules['pin'],
                             'vouchers.*.type' => $voucherRules['type'],
@@ -130,7 +130,6 @@ class VoucherRequest extends FormRequest
             'date' => 'Trường :attribute phải là ngày hợp lệ.',
             'end_date.after' => 'Trường :attribute phải là ngày sau ngày bắt đầu.',
             'in' => ':attribute phải nằm trong :in',
-            'vouchers.required' => 'Danh sách :attribute là bắt buộc.',
             'vouchers.array' => 'Danh sách :attribute phải là một mảng.',
             'vouchers.*.code.required' => 'Trường :attribute là bắt buộc.',
             'vouchers.*.code.string' => 'Trường :attribute phải là chuỗi ký tự.',

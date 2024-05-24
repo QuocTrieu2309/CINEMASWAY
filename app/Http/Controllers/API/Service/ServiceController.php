@@ -62,6 +62,7 @@ class ServiceController extends Controller
     /**
      * Display the specified resource.
      */
+    // GET /api/dashboard/service/{id}
     public function show(string $id)
     {
         try {

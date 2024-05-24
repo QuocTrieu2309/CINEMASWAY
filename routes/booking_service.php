@@ -1,6 +1,6 @@
 <?php
 
-use App\Http\Controllers\Api\BookingService\BookingServiceControlle;
+use App\Http\Controllers\API\BookingService\BookingServiceControlle;
 use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'dashboard/booking-service'], function () {
     // GET booking-service Route

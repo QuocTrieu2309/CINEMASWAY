@@ -23,7 +23,7 @@ class SeatController extends Controller
     public function index(Request $request)
     {
         try {
-            $this->authorize('chekPermission', Seat::class);
+            $this->authorize('checkPermission', Seat::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);

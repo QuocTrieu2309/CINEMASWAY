@@ -8,4 +8,6 @@ Route::group(['prefix' => 'dashboard/user'], function () {
     Route::get('/',[UserController::class,'index']);
     // GET One User Route
     Route::get('/{id}',[UserController::class,'show']);
+    // Create User Route
+    Route::post('/create',[UserController::class,'store']);
 });

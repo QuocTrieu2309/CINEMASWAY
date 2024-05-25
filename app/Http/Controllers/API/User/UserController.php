@@ -3,11 +3,13 @@
 namespace App\Http\Controllers\API\User;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\API\User\UserRequest;
 use App\Http\Resources\API\User\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
@@ -38,7 +40,7 @@ class UserController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    // GET One api/dashboard/{id}
+    // GET One api/dashboard/user/{id}
     public function show($id)
     {
         try {
@@ -49,6 +51,20 @@ class UserController extends Controller
                 'user' => new  UserResource($user),
             ];
             return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+    // Create api/dashboard/user/create
+    public function store(UserRequest $request)
+    {
+        try {
+            $this->authorize('checkPermission', User::class);
+            $user = User::create($request->all());
+            if (!$user) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

@@ -79,8 +79,23 @@ class UserRequest extends FormRequest
                         ];
                         break;
                 }
+            case 'PUT':
+                switch ($action) {
+                    case 'update':
+                        $rules = [
+                            'status' => [
+                                'required',
+                                'string',
+                                'max:60'
+                            ],
+                        ];
+                        break;
+                }
+                break;
                 break;
         }
+
+
         return $rules;
     }
 

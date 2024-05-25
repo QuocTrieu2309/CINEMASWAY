@@ -10,4 +10,6 @@ Route::group(['prefix' => 'dashboard/user'], function () {
     Route::get('/{id}',[UserController::class,'show']);
     // Create User Route
     Route::post('/create',[UserController::class,'store']);
+    // Update User Route
+    Route::put('/update/{id}',[UserController::class,'update']);
 });

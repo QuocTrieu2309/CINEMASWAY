@@ -69,4 +69,20 @@ class UserController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+    // Update api/dashboard/user/update/{id}
+    public function update(UserRequest $request, $id)
+    {
+        try {
+            $this->authorize('checkPermission', User::class);
+            $user = User::where('id', $id)->update([
+                'status' => $request->status,
+            ]);
+            if (!$user) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

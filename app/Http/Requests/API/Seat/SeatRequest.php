@@ -33,7 +33,7 @@ class SeatRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'cinema_screens_id' => 'required|exists:cinema_screens,id',
+                            'cinema_screen_id' => 'required|exists:cinema_screens,id',
                             'seat_type_id' => 'required|exists:seat_types,id',
                             'seat_number' => [
                                 'required',

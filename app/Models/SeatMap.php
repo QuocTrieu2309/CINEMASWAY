@@ -10,6 +10,7 @@ class SeatMap extends Model
     use HasFactory;
     protected $fillable = [
         'cinema_screen_id',
+        'seat_total',
         'total_row',
         'total_column',
         'layout',

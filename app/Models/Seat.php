@@ -14,7 +14,7 @@ class Seat extends Model
     const STATUS_SOLD = 'Ghế đã bán';
     const STATUS_RESERVED = 'Ghế đã đặt trước';
     protected $fillable =[
-        'cinema_screens_id',
+        'cinema_screen_id',
         'seat_type_id',
         'seat_number',
         'status',

@@ -18,6 +18,7 @@ class SeatMapResource extends JsonResource
             'id' => $this->id,
             'screen' => $this->cinemaScreen->screen->name,
             'cinema' => $this->cinemaScreen->cinema->name,
+            'seat_total' => $this->seat_total,
             'total_row' => $this->total_row,
             'total_column' => $this->total_column,
             'layout' => $this->layout

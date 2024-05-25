@@ -44,6 +44,9 @@ function messageResponseActionSuccess()
 function CheckPermissionWithPolicy($model, $module)
 {
     $permissions = $model->permission()->pluck('name')->toArray();
+    if($model->role->name == 'Admin'){
+        return true; 
+    }
     if (!in_array($module, $permissions) || ($model->role->name !== 'Admin')) {
         return false;
     }

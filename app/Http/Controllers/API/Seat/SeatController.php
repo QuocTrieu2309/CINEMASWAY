@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Seat\SeatRequest;
 use App\Http\Resources\API\Seat\SeatResource;
 use App\Models\Seat;
+use App\Models\SeatMap;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -51,18 +53,54 @@ class SeatController extends Controller
     {
         try {
             $this->authorize('checkPermission', Seat::class);
-            $seat = Seat::create($request->all());
-            if (!$seat) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            $data  = $request->all();
+            $seatAllScreen  = Seat::where('cinema_screen_id', $request->cinema_screen_id)->get();
+            $seatMap = SeatMap::where('cinema_screen_id', $request->cinema_screen_id)->first();
+            $totalSeatMap = $seatMap->seat_total;
+            $totalRow = $seatMap->total_row;
+            if (count($seatAllScreen) >= $totalSeatMap) {
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Số lượng ghế của phòng chiếu đã đầy không thể thêm mới.');
             }
-            return ApiResponse(false, true, Response::HTTP_BAD_REQUEST, messageResponseActionSuccess());
+            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
+            $seatNumber = $request->seat_number;
+            $seatCharacter = $seatNumber[0];
+            $characterNumber = substr($seatNumber, 1);
+            $indexCharacter = array_search($seatCharacter, $characterArr);
+            $layout = $seatMap->layout;
+            $layoutArr = explode('|', $layout);
+            foreach ($layoutArr as $item) {
+                $item = str_replace('X', '', $item);
+                if ($item == "") {
+                    $totalRow = $totalRow - 1;
+                }
+            }
+            if (($indexCharacter + 1) >  $totalRow) {
+                return ApiResponse(false, $totalRow, Response::HTTP_BAD_REQUEST, "Dãy ghế cao nhất của phòng chiếu được bắt đầu bởi kí tự" . " " . $characterArr[$totalRow - 1]);
+            } else {
+                $layoutRow =  $layoutArr[$indexCharacter + 1];
+                $layoutRow = str_replace('X', '', $layoutRow);
+                $count = Str::length($layoutRow);
+                if ($characterNumber > $count) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Số ghế không được lớn hơn số ghế đang sử dụng trong dãy");
+                }
+                $seatCharacterAll = Seat::where('seat_number', 'LIKE', $seatCharacter . '%')
+                    ->where('cinema_screen_id', $request->cinema_screen_id)
+                    ->get();
+                $countSeat = count($seatCharacterAll);
+                if ($countSeat >= $count) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Hàng ghế này đã đầy không thể tạo thêm");
+                } else {
+                    $cridential = Seat::query()->create($data);
+                    if (!$cridential) {
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                    }
+                }
+            }
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-
-
-
     /**
      * Display the specified resource.
      */
@@ -91,8 +129,56 @@ class SeatController extends Controller
         try {
             $this->authorize('checkPermission', Seat::class);
             $seat = Seat::where('id', $id)->where('deleted', 0)->first();
-            empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $seatUpdated = Seat::where('id', $id)->update($request->all());
+            $seat->status = $request->status;
+            $cridential = $seat->save();
+            if (!$cridential) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            }
+            // empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            // $data  = $request->all();
+            // $seatAllScreen  = Seat::where('cinema_screen_id',$seat->cinema_screen_id)->where('id','!=',$id)->get();
+            // $seatMap = SeatMap::where('cinema_screen_id',$request->cinema_screen_id)->first();
+            // $totalSeatMap = $seatMap->seat_total;
+            // $totalRow = $seatMap->total_row;
+            // if(count($seatAllScreen)>= $totalSeatMap ){
+            //     return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Số lượng ghế của phòng chiếu đã đầy không thể thêm mới.');
+            // }
+            // $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
+            // $seatNumber = $request->seat_number;
+            // $seatCharacter = $seatNumber[0];
+            // $characterNumber = substr($seatNumber,1);
+            // $indexCharacter = array_search($seatCharacter,$characterArr);
+            // $layout = $seatMap->layout;
+            // $layoutArr = explode('|', $layout);
+            // foreach( $layoutArr as $item){
+            //     $item = str_replace('X', '', $item);
+            //     if($item == ""){
+            //        $totalRow = $totalRow -1;
+            //     }
+            // }
+            // if(($indexCharacter+1) >  $totalRow){
+            //     return ApiResponse(false, $totalRow, Response::HTTP_BAD_REQUEST, "Dãy ghế cao nhất của phòng chiếu được bắt đầu bởi kí tự". " ".$characterArr[$totalRow-1]);
+            // }else{
+            //     $layoutRow =  $layoutArr[$indexCharacter+1];
+            //     $layoutRow = str_replace('X', '',$layoutRow);
+            //     $count = Str::length($layoutRow);
+            //     if($characterNumber > $count ){
+            //         return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Số ghế không được lớn hơn số ghế đang sử dụng trong dãy");
+            //     }
+            //     $seatCharacterAll = Seat::where('seat_number', 'LIKE', $seatCharacter . '%')
+            //                         ->where('cinema_screen_id', $request->cinema_screen_id)
+            //                         ->where('id','!=',$id)
+            //                         ->get();
+            //     $countSeat = count($seatCharacterAll);
+            //     if($countSeat >= $count){
+            //         return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Hàng ghế này đã đầy không thể tạo thêm");
+            //     }else{
+            //       $cridential = $seat->update($data);
+            //       if(!$cridential){
+            //         return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            //       }
+            //     }                           
+            // }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

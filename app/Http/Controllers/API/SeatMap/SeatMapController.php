@@ -52,7 +52,7 @@ class SeatMapController extends Controller
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
             $layout = $seatMap->layout;
             $layoutArr  = explode('|', $layout);
-            $seatAll = Seat::all();
+            $seatAll = Seat::where('cinema_screen_id',$seatMap->cinema_screen_id)->get();
             $detail = [];
             $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
             foreach ($seatAll as $item) {
@@ -61,7 +61,7 @@ class SeatMapController extends Controller
                     if ($item['seat_number'][0] == $character) {
                         $detail[$count][] =  [
                             'seat_number' =>  $item['seat_number'],
-                            'status' => $item['status']
+                            'type' => ''
                         ];
                     }
                     $count++;
@@ -81,6 +81,8 @@ class SeatMapController extends Controller
                                 ]
                             ];
                             array_splice($detail[$i], $j, 0, $noSeatNumber);
+                        }else{
+                            $detail[$i][$j]['type'] =$layoutArr[$i][$j];
                         }
                     }
                 }

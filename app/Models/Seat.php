@@ -8,11 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class Seat extends Model
 {
     use HasFactory;
-    const STATUS_EMPTYSEAT = 'Ghế trống';
-    const STATUS_BELINGHOLD = 'Ghế đang được giữ';
-    const STATUS_SELECTED = 'Ghế Đang chọn';
-    const STATUS_SOLD = 'Ghế đã bán';
-    const STATUS_RESERVED = 'Ghế đã đặt trước';
+    const STATUS_OCCUPIED = 'OCCUPIED';
+    const STATUS_UNOCCUPIED = 'UNOCCUPIED';
     protected $fillable =[
         'cinema_screen_id',
         'seat_type_id',

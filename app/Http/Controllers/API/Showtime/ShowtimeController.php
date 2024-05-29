@@ -6,6 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Showtime\ShowtimeRequest;
 use App\Http\Resources\API\Showtime\ShowtimeResource;
 use App\Models\Showtime;
+use Carbon\Carbon;
+use App\Models\Movie;
+use App\Models\Seat;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -44,16 +48,45 @@ class ShowtimeController extends Controller
     {
         try {
             $this->authorize('checkPermission', Showtime::class);
-            $showtime = Showtime::create($request->all());
-            if (!$showtime) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+            $showTime = Carbon::parse($request->show_time);
+            $existingShowtimes = Showtime::where('cinema_screen_id', $request->cinema_screen_id)
+                ->where('show_date', $request->show_date)
+                ->orderBy('show_time')
+                ->get();
+            $canCreate = true;
+            foreach ($existingShowtimes as $existingShowtime) {
+                $existingStart = Carbon::parse($existingShowtime->show_time);
+                $existingEnd = $existingStart->copy()->addMinutes($existingShowtime->movie->duration);
+                if ($existingEnd->diffInMinutes($showTime, false) < 30) {
+                    $canCreate = false;
+                    break;
+                }
             }
-
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            if ($canCreate) {
+                $showtime = Showtime::create($request->all());
+                if (!$showtime) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                }
+                $allSeatID = Seat::where('cinema_screen_id', $showtime->cinema_screen_id)->where('status',Seat::STATUS_OCCUPIED)->pluck('id');
+                foreach($allSeatID as $seatID){
+                   $cridential=  Ticket::query()->create([
+                    'showtime_id'=>$showtime->id,
+                    'seat_id'=> $seatID,
+                    'status' => Ticket::STATUS_AVAILABLE
+                   ]);
+                   if(!$cridential){
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                   }
+                }
+                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Suất chiếu mới phải cách ít nhất 1 giờ so với các suất chiếu khác.');
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
     //GET api/dashboard/showtime/{id}
     public function show($id)
     {
@@ -74,9 +107,52 @@ class ShowtimeController extends Controller
     {
         try {
             $this->authorize('checkPermission', Showtime::class);
-            $showtime = Showtime::where('id', $id)->where('deleted', 0)->first();
-            empty($showtime) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $showtimeUpdated = Showtime::where('id', $id)->update($request->all());
+            $showtime = Showtime::find($request->id);
+            $oldCinemaScreenID =  $showtime->cinema_screen_id ;
+            if (!$showtime) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseNotFound());
+            }
+            $showTime = Carbon::parse($request->show_time);
+            $existingShowtimes = Showtime::where('cinema_screen_id', $request->cinema_screen_id)
+                ->where('show_date', $request->show_date)
+                ->where('id','!=',$id)
+                ->orderBy('show_time')
+                ->get();
+            $canCreate = true;
+            foreach ($existingShowtimes as $existingShowtime) {
+                $existingStart = Carbon::parse($existingShowtime->show_time);
+                $existingEnd = $existingStart->copy()->addMinutes($existingShowtime->movie->duration);
+                if ($existingEnd->diffInMinutes($showTime, false) < 30) {
+                    $canCreate = false;
+                    break;
+                }
+            }
+            if ($canCreate) {
+                $check =  $showtime->update($request->all());
+                if (!$check) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                }
+                if(($showtime->cinema_screen_id) != $oldCinemaScreenID){
+                    $allTicket = Ticket::where('showtime_id',$id)->get();
+                    foreach($allTicket as $ticket){
+                        $ticket->delete();
+                    }
+                }
+                $allSeatID = Seat::where('cinema_screen_id', $showtime->cinema_screen_id)->where('status',Seat::STATUS_OCCUPIED)->pluck('id');
+                foreach($allSeatID as $seatID){
+                   $cridential=  Ticket::query()->create([
+                    'showtime_id'=>$showtime->id,
+                    'seat_id'=> $seatID,
+                    'status' => Ticket::STATUS_AVAILABLE
+                   ]);
+                   if(!$cridential){
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                   }
+                }
+                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Suất chiếu mới phải cách ít nhất 1 giờ so với các suất chiếu khác.');
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

@@ -50,11 +50,6 @@ class DatabaseSeeder extends Seeder
             'status'=>\App\Models\Movie::STATUS_COMING ,
             'rated'=> \App\Models\Movie::RATED_C18 ,
         ]);
-
-        \App\Models\Translation::query()->create([
-            'name'=> "Phu de tieng Viet",
-        ]);
-
         \App\Models\Transaction::factory(10)->create();
     }
 }

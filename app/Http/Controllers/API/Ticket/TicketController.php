@@ -70,20 +70,6 @@ class TicketController extends Controller
      * @param TicketRequest $request
      * @return ApiResponse
      */
-    public function store(TicketRequest $request)
-    {
-        try {
-            $this->authorize('checkPermission', Ticket::class);
-            $seatType = Ticket::create($request->all());
-            if (!$seatType) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-            }
-
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
-        } catch (\Exception $e) {
-            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-        }
-    }
 
     /**
      * UPDATE api/dashboard/ticket/update/{id}
@@ -98,13 +84,11 @@ class TicketController extends Controller
             $ticket = Ticket::where('id', $id)->where('deleted', 0)->first();
             empty($ticket) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $ticketUpdate = Ticket::where('id', $id)->update([
-                'booking_id' => $request->get('booking_id') ?? $ticket->booking_id,
-                'showtime_id' => $request->get('showtime_id') ?? $ticket->showtime_id,
-                'seat_id' => $request->get('seat_id') ?? $ticket->seat_id,
-                'code' => $request->get('code') ?? $ticket->code,
                 'status' => $request->get('status') ?? $ticket->status,
             ]);
-
+            if(!$ticketUpdate){
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+               }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

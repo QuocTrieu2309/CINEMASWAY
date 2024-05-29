@@ -10,6 +10,8 @@ class SeatType extends Model
     use HasFactory;
     protected $fillable = [
         'name',
+        'price',
+        'promotion_price',
         'deleted'
     ];
     protected $hidden = [
@@ -20,8 +22,5 @@ class SeatType extends Model
     ];
     public function seats(){
         return $this->hasMany(Seat::class);
-    }
-    public function ticketType(){
-        return $this->hasOne(TicketType::class);
     }
 }

@@ -38,6 +38,17 @@ class SeatTypeRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
+                            'price' => 'required|numeric|min:10000',
+                            'promotion_price' => [
+                                'required',
+                                'numeric',
+                                'min:0',
+                                function ($attribute, $value, $fail) {
+                                    if ($value >= $this->input('price')) {
+                                        $fail('Trường ' . $attribute . ' phải có giá trị nhỏ hơn giá gốc.');
+                                    }
+                                },
+                            ],
                         ];
                         break;
                 }
@@ -51,6 +62,17 @@ class SeatTypeRequest extends FormRequest
                                 Rule::unique('seat_types')->where(function ($query) {
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
+                            ],
+                            'price' => 'required|numeric|min:10000',
+                            'promotion_price' => [
+                                'required',
+                                'numeric',
+                                'min:0',
+                                function ($attribute, $value, $fail) {
+                                    if ($value >= $this->input('price')) {
+                                        $fail('Trường ' . $attribute . ' phải có giá trị nhỏ hơn giá gốc.');
+                                    }
+                                },
                             ],
                         ];
                         break;

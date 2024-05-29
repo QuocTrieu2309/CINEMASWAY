@@ -3,9 +3,9 @@
 namespace App\Http\Resources\API\Screen;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class ScreenResource extends ResourceCollection
+class ScreenResource extends JsonResource
 {
     /**
      * Transform the resource collection into an array.

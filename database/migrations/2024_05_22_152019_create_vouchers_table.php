@@ -11,12 +11,21 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('translations', function (Blueprint $table) {
+        Schema::create('vouchers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->unsignedBigInteger('user_id');
+            $table->string('code', 60);
+            $table->string('pin', 60);
+            $table->string('type', 60);
+            $table->decimal('value', 8, 2);
+            $table->dateTime('start_date');
+            $table->dateTime('end_date');
+            $table->string('status', 60);
+            $table->text('description');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
+            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }
@@ -26,6 +35,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('translations');
+        Schema::dropIfExists('vouchers');
     }
 };

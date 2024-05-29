@@ -21,8 +21,6 @@ require_once __DIR__ . '/role.php';
 require_once __DIR__ . '/permission.php';
 //User-Permission route
 require_once __DIR__ . '/user_permission.php';
-//Translation route
-require_once __DIR__ . '/translation.php';
 //Screen route
 require_once __DIR__ . '/screen.php';
 //Cinema_screen route
@@ -37,9 +35,9 @@ require_once __DIR__ . '/seat.php';
 require_once __DIR__ . '/seat_type.php';
 //Ticket route
 require_once __DIR__ . '/ticket.php';
-//Ticket_type route
-require_once __DIR__ . '/ticket_type.php';
 //Showtime route
 require_once __DIR__ . '/showtime.php';
+//Showtime route
+require_once __DIR__ . '/seat_map.php';
 
 

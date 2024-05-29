@@ -3,9 +3,9 @@
 namespace App\Http\Resources\API\Cinema;
 
 use Illuminate\Http\Request;
-use Illuminate\Http\Resources\Json\ResourceCollection;
+use Illuminate\Http\Resources\Json\JsonResource;
 
-class CinemaResource extends ResourceCollection
+class CinemaResource extends JsonResource
 {
     /**
      * Transform the resource collection into an array.

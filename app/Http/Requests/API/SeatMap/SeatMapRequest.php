@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\API\SeatMap;
 
-use App\Models\Seat;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
@@ -27,6 +26,7 @@ class SeatMapRequest extends FormRequest
     public function rules(): array
     {
         $currentMethod = $this->route()->getActionMethod();
+        $maxSeatTotal = $this->input('total_row') * $this->input('total_column');
         $rules = [];
         switch ($this->method()) {
             case 'POST':
@@ -39,6 +39,7 @@ class SeatMapRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
+                            'seat_total' => 'required|integer|min:4|max:'.$maxSeatTotal,
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_column' => 'required|integer|min:4|max:12',
                             'layout' => ['required', 'string', 
@@ -55,9 +56,10 @@ class SeatMapRequest extends FormRequest
                             'cinema_screen_id' => [
                                 'required', 'exists:cinema_screens,id',
                                 Rule::unique('seat_maps')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
+                                    return $query->where('deleted', 0)->where('cinema_screen_id', '!=', $this->cinema_screen_id);
                                 })
                             ],
+                            'seat_total' => 'required|integer|min:4|max:'.$maxSeatTotal,
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_column' => 'required|integer|min:4|max:12',
                             'layout' => ['required', 'string', 'regex:/^(?:[NVCX]+\|?)*[NVCX]+$/'],

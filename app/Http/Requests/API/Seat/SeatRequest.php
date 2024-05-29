@@ -33,23 +33,23 @@ class SeatRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'store':
                         $rules = [
-                            'cinema_screens_id' => 'required|exists:cinema_screens,id',
+                            'cinema_screen_id' => 'required|exists:cinema_screens,id',
                             'seat_type_id' => 'required|exists:seat_types,id',
                             'seat_number' => [
                                 'required',
                                 Rule::unique('seats')->where(function ($query) {
-                                    return $query->where('deleted', 0);
-                                })
+                                    return $query->where('deleted', 0)
+                                    ->where('seat_type_id',$this->seat_type_id)
+                                    ->where('cinema_screen_id',$this->cinema_screen_id);
+                                }),
+                                'regex:/^[A-Z]([0-9]|1[0-9]|20)$/'
                             ],
 
                             'status' => [
                                 'required',
                                 Rule::in([
-                                    Seat::STATUS_EMPTYSEAT,
-                                    Seat::STATUS_BELINGHOLD,
-                                    Seat::STATUS_SELECTED,
-                                    Seat::STATUS_SOLD,
-                                    Seat::STATUS_RESERVED,
+                                    Seat::STATUS_OCCUPIED,
+                                    Seat::STATUS_UNOCCUPIED,                                  
                                 ])
                             ],
 
@@ -61,20 +61,23 @@ class SeatRequest extends FormRequest
                 switch ($currentMethod) {
                     case 'update':
                         $rules = [
+                            'cinema_screen_id' => 'required|exists:cinema_screens,id',
+                            'seat_type_id' => 'required|exists:seat_types,id',
                             'seat_number' => [
                                 'required',
                                 Rule::unique('seats')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
-                                })
+                                    return $query->where('deleted', 0)
+                                    ->where('seat_type_id',$this->seat_type_id)
+                                    ->where('cinema_screen_id',$this->cinema_screen_id)
+                                    ->where('id','!=',$this->id);
+                                }),
+                                'regex:/^[A-Z]([0-9]|1[0-9]|20)$/'
                             ],
                             'status' => [
                                 'required',
                                 Rule::in([
-                                    Seat::STATUS_EMPTYSEAT,
-                                    Seat::STATUS_BELINGHOLD,
-                                    Seat::STATUS_SELECTED,
-                                    Seat::STATUS_SOLD,
-                                    Seat::STATUS_RESERVED,
+                                    Seat::STATUS_OCCUPIED,
+                                    Seat::STATUS_UNOCCUPIED, 
                                 ])
                             ],
                         ];
@@ -88,9 +91,10 @@ class SeatRequest extends FormRequest
     {
         return [
             'required' => ":attribute không được để trống",
-            'in' => ':attribute phải nằm trong :in',
+            'in' => ':attribute không hợp lệ',
             'unique' => ':attribute đã tồn tại',
             'exists' => ":attribute không tồn tại",
+            'regex'=> ':attribute phải có định dạng bắt đầu bằng kí tự viết hoa kết hợp với 1 số từ 1 đến 20'
         ];
     }
     public function attributes()

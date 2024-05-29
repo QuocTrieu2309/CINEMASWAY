@@ -11,10 +11,18 @@ class Showtime extends Model
     protected $table = "showtimes";
     protected $primaryKey = "id";
     public $timestamps = true;
+    const SUBTITLE_EN_VN ='Tiếng Anh-Phụ đề tiếng Việt';
+    const SUBTITLE_EN_EN ='Tiếng Anh-Phụ đề tiếng Anh';
+    const SUBTITLE_VN = 'Tiếng Việt';
+    const STATUS_ACTIVE = 'Hoạt động';
+    const STATUS_INACTIVE= 'Hủy bỏ';
+    const STATUS_SOLD_OUT = 'Bán hết';
+    const STATUS_AVAILABLE = 'Còn chỗ';
+    const STATUS_COMPLETED = 'Kết thúc';
     protected $fillable = [
         'movie_id',
         'cinema_screen_id',
-        'translation_id',
+        'subtitle',  
         'show_date',
         'show_time',
         'status',
@@ -32,10 +40,7 @@ class Showtime extends Model
     }
     public function cinemaScreen()
     {
-        return $this->belongsTo(CinemaScreens::class);
+        return $this->belongsTo(CinemaScreen::class);
     }
-    // public function translation()
-    // {
-    //     return $this->belongsTo(Translation::class);
-    // }
+
 }

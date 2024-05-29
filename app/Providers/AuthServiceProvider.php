@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Booking;
 use App\Models\Cinema;
 use App\Models\CinemaScreen;
 use App\Models\Movie;
@@ -15,12 +16,11 @@ use App\Models\SeatType;
 use App\Models\Service;
 use App\Models\Showtime;
 use App\Models\Ticket;
-use App\Models\TicketType;
-use App\Models\Translation;
 use App\Models\Transaction;
 use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
 use App\Models\Voucher;
+use App\Policies\BookingPolicy;
 use App\Policies\CinemaPolicy;
 use App\Policies\CinemaScreenPolicy;
 use App\Policies\PermissionPolicy;
@@ -31,8 +31,6 @@ use App\Policies\SeatTypePolicy;
 use App\Policies\ServicePolicy;
 use App\Policies\ShowtimePolicy;
 use App\Policies\TicketPolicy;
-use App\Policies\TicketTypePolicy;
-use App\Policies\TranslationPolicy;
 use App\Policies\UserPermissionPolicy;
 use App\Policies\TransactionPolicy;
 use App\Policies\VoucherPolicy;
@@ -50,14 +48,13 @@ class AuthServiceProvider extends ServiceProvider
         Screen::class => ScreenPolicy::class,
         Cinema::class => CinemaPolicy::class,
         CinemaScreen::class => CinemaScreenPolicy::class,
-        TicketType::class => TicketTypePolicy::class,
-        Translation::class => TranslationPolicy::class,
         Ticket::class => TicketPolicy::class,
         Seat::class => SeatPolicy::class,
         SeatMap::class => SeatMapPolicy::class,
         Service::class => ServicePolicy::class,
         Transaction::class => TransactionPolicy::class,
         Voucher::class => VoucherPolicy::class,
+        Booking::class => BookingPolicy::class,
     ];
 
     public function boot(): void

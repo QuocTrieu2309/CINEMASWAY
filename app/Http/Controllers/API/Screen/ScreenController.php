@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\Screen;
+namespace App\Http\Controllers\API\Screen;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Screen\ScreenRequest;

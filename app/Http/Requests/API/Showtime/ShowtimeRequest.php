@@ -7,6 +7,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+use App\Models\Showtime;
 
 class ShowtimeRequest extends FormRequest
 {
@@ -46,16 +48,34 @@ class ShowtimeRequest extends FormRequest
                                     $query->where('deleted', 0);
                                 }),
                             ],
-                            'translation_id' => [
+                            'subtitle' => [
                                 'required',
-                                'numeric',
-                                // Rule::exists('translations', 'id')->where(function ($query) {
-                                //     $query->where('deleted', 0);
-                                // }),
+                                Rule::in([
+                                    Showtime::SUBTITLE_EN_EN,
+                                    Showtime::SUBTITLE_EN_VN,
+                                    Showtime::SUBTITLE_VN,
+                                ])
                             ],
                             'show_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
-                            'show_time' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
-                            'status' => 'required|string|max:60',
+                            'show_time' => [
+                                'required',
+                                'date_format:H:i:s',
+                                function ($attribute, $value, $fail) {
+                                    if (Carbon::parse($value) < Carbon::now()->format('H:i:s')) {
+                                        $fail($attribute.' phải sau hoặc bằng thời gian hiện tại.');
+                                    }
+                                },
+                            ],
+                            'status' => [
+                                'required',
+                                Rule::in([
+                                        Showtime::STATUS_ACTIVE,
+                                        Showtime::STATUS_INACTIVE,
+                                        Showtime::STATUS_AVAILABLE,
+                                        Showtime::STATUS_COMPLETED,
+                                        Showtime::STATUS_SOLD_OUT,
+                                ])
+                            ],
                         ];
                         break;
                 }
@@ -78,16 +98,34 @@ class ShowtimeRequest extends FormRequest
                                     $query->where('deleted', 0);
                                 }),
                             ],
-                            'translation_id' => [
+                            'subtitle' => [
                                 'required',
-                                'numeric',
-                                // Rule::exists('translations', 'id')->where(function ($query) {
-                                //     $query->where('deleted', 0);
-                                // }),
+                                Rule::in([
+                                        Showtime::SUBTITLE_EN_EN,
+                                        Showtime::SUBTITLE_EN_VN,
+                                        Showtime::SUBTITLE_VN
+                                ])
                             ],
                             'show_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
-                            'show_time' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d H:i:s'),
-                            'status' => 'required|string|max:60',
+                            'show_time' => [
+                                'required',
+                                'date_format:H:i:s',
+                                function ($attribute, $value, $fail) {
+                                    if (Carbon::parse($value) < Carbon::now()->format('H:i:s')) {
+                                        $fail($attribute . 'phải sau hoặc bằng thời gian hiện tại.');
+                                    }
+                                },
+                            ],
+                            'status' => [
+                                'required',
+                                Rule::in([
+                                        Showtime::STATUS_ACTIVE,
+                                        Showtime::STATUS_INACTIVE,
+                                        Showtime::STATUS_AVAILABLE,
+                                        Showtime::STATUS_COMPLETED,
+                                        Showtime::STATUS_SOLD_OUT,
+                                ])
+                            ],
                         ];
                         break;
                 }

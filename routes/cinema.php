@@ -1,6 +1,6 @@
 <?php
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\API\cinema\CinemaController;;
+use App\Http\Controllers\API\Cinema\CinemaController;;
 
 Route::group(['prefix' => 'dashboard/cinema'], function () {
     // GET Cinema Route

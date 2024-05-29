@@ -61,7 +61,7 @@ class MovieRequest extends FormRequest
                                     Movie::RATED_C18,
                                 ])
                             ],
-                            'image' => ['mimes:jpg,jpeg,png','max:2048'],
+                            'image' => ['mimes:jpg,jpeg,png','max:255'],
                             'trailer' => ['required', 'url', 'max:255'],
                             'description' => 'string',
                         ];
@@ -99,7 +99,7 @@ class MovieRequest extends FormRequest
                                     Movie::RATED_C18,
                                 ])
                             ],
-                            'image' => ['mimes:jpg,jpeg,png','max:2048'],
+                            'image' => ['string','max:2048'],
                             'trailer' => ['required','url', 'max:255'],
                             'description' => 'string',
                         ];

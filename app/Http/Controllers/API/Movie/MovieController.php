@@ -62,20 +62,10 @@ class MovieController extends Controller
     {
         try {
             $this->authorize('checkPermission', Movie::class);
-            $data = $request->except('image');
-            if ($request->hasFile('image')) {
-                $uploadedImage = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'CINEMASWAY/MOVIE',
-                    'overwrite' => true,
-                    'resource_type' => 'image'
-                ]);
-                $imageUrl = $uploadedImage->getSecurePath();
-                $data['image'] = $imageUrl;
-            }
+            $data = $request->all();
+            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
             $movie = Movie::create($data);
-            if (!$movie && isset($imageUrl)) {
-                $publicId = getImagePublicId($imageUrl);
-                Cloudinary::destroy($publicId);
+            if (!$movie) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
@@ -93,28 +83,11 @@ class MovieController extends Controller
             if (!$movie) {
                 return ApiResponse(false, null, Response::HTTP_NOT_FOUND, messageResponseNotFound());
             }
-            $data = $request->except('image');
-            $imageOld = $movie->image;
-            if ($request->hasFile('image')) {
-                $uploadedImage = Cloudinary::upload($request->file('image')->getRealPath(), [
-                    'folder' => 'CINEMASWAY/MOVIE',
-                    'overwrite' => true,
-                    'resource_type' => 'image'
-                ]);
-                $imageUrl = $uploadedImage->getSecurePath();
-                $data['image'] = $imageUrl;
-            } else {
-                $data['image'] = $imageOld;
-            }
-            $movieUpdated = $movie->update($data);
-            if (!$movieUpdated && isset($imageUrl)) {
-                $publicId = getImagePublicId($imageUrl);
-                Cloudinary::destroy($publicId);
-                throw new \ErrorException('Cập nhật không thành công', Response::HTTP_BAD_REQUEST);
-            }
-            if ($movieUpdated && isset($imageUrl) && $imageOld) {
-                $publicId = getImagePublicId($imageOld);
-                Cloudinary::destroy($publicId);
+            $data = $request->all();
+            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
+            $cridential = $movie->update($data);
+            if (!$cridential) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {

@@ -38,7 +38,7 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'price' => 'required|integer|10000',
                             'quantity' => 'required|integer|min:1'
                         ];
                         break;
@@ -54,7 +54,7 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-                            'price' => ['required', 'regex:/^\d{1,3}(,\d{3})*(\.\d{1,2})?$/'],
+                            'price' => 'required|integer|10000',
                             'quantity' => 'required|integer|min:1'
                         ];
                         break;

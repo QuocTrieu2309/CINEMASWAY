@@ -17,6 +17,7 @@ use App\Models\Service;
 use App\Models\Showtime;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Policies\MoviePolicy;
 use App\Models\UserPermission;
 use App\Models\Voucher;
@@ -33,6 +34,7 @@ use App\Policies\ShowtimePolicy;
 use App\Policies\TicketPolicy;
 use App\Policies\UserPermissionPolicy;
 use App\Policies\TransactionPolicy;
+use App\Policies\UserPolicy;
 use App\Policies\VoucherPolicy;
 use Illuminate\Foundation\Support\Providers\AuthServiceProvider as ServiceProvider;
 
@@ -53,6 +55,7 @@ class AuthServiceProvider extends ServiceProvider
         SeatMap::class => SeatMapPolicy::class,
         Service::class => ServicePolicy::class,
         Transaction::class => TransactionPolicy::class,
+        User::class => UserPolicy::class,
         Voucher::class => VoucherPolicy::class,
         Booking::class => BookingPolicy::class,
     ];

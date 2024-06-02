@@ -39,5 +39,6 @@ require_once __DIR__ . '/ticket.php';
 require_once __DIR__ . '/showtime.php';
 //Showtime route
 require_once __DIR__ . '/seat_map.php';
+require_once __DIR__ . '/momo.php';
 
 

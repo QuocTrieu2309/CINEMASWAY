@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Vnpay;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 
@@ -67,6 +68,24 @@ class VnpayController extends Controller
                 $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
             }
             return redirect($vnp_Url);
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef)
+    public function send(Request $request)
+    {
+        try {
+            if ($request->vnp_TransactionStatus == 00) {
+                $booking = Booking::where('id', $request->vnp_TxnRef)->where('deleted', 0)->first();
+                empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+                Booking::where('id', $request->vnp_TxnRef)->update([
+                    'status' => "Thanh toán thành công"
+                ]);
+                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Đã hủy thanh toán");
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

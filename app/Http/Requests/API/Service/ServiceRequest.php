@@ -38,8 +38,8 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                            'price' => 'required|integer|10000',
-                            'quantity' => 'required|integer|min:1'
+                            'price' => 'required|integer|min:10000|max:500000',
+                            'quantity' => 'required|integer|min:1|max:1000'
                         ];
                         break;
                 }
@@ -54,8 +54,8 @@ class ServiceRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-                            'price' => 'required|integer|10000',
-                            'quantity' => 'required|integer|min:1'
+                            'price' => 'required|integer|10000|max:500000',
+                            'quantity' => 'required|integer|min:1|max:1000'
                         ];
                         break;
                 }

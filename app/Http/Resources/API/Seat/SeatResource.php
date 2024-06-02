@@ -18,7 +18,7 @@ class SeatResource extends JsonResource
             'id' => $this->id,
             'cinema' => $this->cinemaScreen->cinema->name,
             'screen' => $this->cinemaScreen->screen->name,
-            'seat_number' => $this->seat_number,
+            'seat_number' => $this->seat->seat_number,
             'status' => $this->status,
         ];
     }

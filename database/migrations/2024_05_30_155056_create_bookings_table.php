@@ -14,8 +14,6 @@ return new class extends Migration
         Schema::create('bookings', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger("user_id");
-            $table->unsignedBigInteger("ticket_type_id");
-            $table->unsignedBigInteger("showtime_id");
             $table->unsignedInteger("quantity")->comment("So luong ve");
             $table->unsignedDecimal("subtotal", 8, 2)->comment("Tong so tien");
             $table->string("status");
@@ -24,8 +22,6 @@ return new class extends Migration
             $table->integer('deleted')->default(0);
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users');
-            $table->foreign('ticket_type_id')->references('id')->on('ticket_types');
-            $table->foreign('showtime_id')->references('id')->on('showtimes');
         });
     }
 

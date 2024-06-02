@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('vouchers', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('user_id');
             $table->string('code', 60);
             $table->string('pin', 60);
             $table->string('type', 60);
@@ -25,7 +24,6 @@ return new class extends Migration
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
-            $table->foreign('user_id')->references('id')->on('users');
             $table->timestamps();
         });
     }

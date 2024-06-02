@@ -13,8 +13,6 @@ class Booking extends Model
     public $timestamps = true;
     protected $fillable = [
         'user_id',
-        'ticket_type_id',
-        'showtime_id',
         'quantity',
         'subtotal',
         'status',
@@ -30,12 +28,8 @@ class Booking extends Model
     {
         return $this->hasMany(User::class);
     }
-    public function ticketTypes()
+    public function services()
     {
-        return $this->hasMany(TicketType::class);
-    }
-    public function showtimes()
-    {
-        return $this->hasMany(Showtime::class);
+        return $this->belongsToMany(Service::class, 'booking_services');
     }
 }

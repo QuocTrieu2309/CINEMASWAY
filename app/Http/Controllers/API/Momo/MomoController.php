@@ -106,7 +106,6 @@ class MomoController extends Controller
         $secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
         $accessKey = 'F8BBA842ECF85';
         $partnerCode = 'MOMO';
-
         $rawSignature = sprintf(
             'accessKey=%s&orderId=%s&partnerCode=%s&requestId=%s',
             $accessKey,

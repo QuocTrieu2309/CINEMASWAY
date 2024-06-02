@@ -9,6 +9,4 @@ Route::group(['prefix' => 'client/momo'], function () {
     Route::post('/momo/callback', [MomoController::class, 'callback'])->name('momo.callback');
     // payment success
     Route::post('/success', [MomoController::class, 'checkStatusTransaction'])->name('payment.success');
-
-
 });

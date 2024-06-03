@@ -16,8 +16,9 @@ class CinemaScreenResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->cinema->name,
-            'city' => $this->cinema->city,
+            'cinema_id'=> $this->cinema_id,
+            'cinema' => $this->cinema->name,
+            'screen_id' => $this->screen_id,
             'screen'=> $this->screen->name
         ];
     }

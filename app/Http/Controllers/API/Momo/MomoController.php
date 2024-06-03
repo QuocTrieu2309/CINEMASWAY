@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Momo;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
@@ -17,32 +18,29 @@ class MomoController extends Controller
         $this->middleware('auth:sanctum');
     }
 
-
+// tạo link thanh toán
     public function payment(Request $request)
     {
         $userId = Auth::id();
         $bookingId = $request->input('booking_id');
         $booking = Booking::where('id', $bookingId)->where('user_id', $userId)->first();
-
         if (!$booking) {
             return response()->json(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
         }
         $accessKey = 'F8BBA842ECF85';
         $secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
         $partnerCode = 'MOMO';
-        $redirectUrl = 'https://abc.com';
-        $ipnUrl = route('momo.callback');
+        $redirectUrl = 'https://abc.com'; // link khi thanh toán xong đẩy về trang chủ
+        $ipnUrl = route('momo.callback'); //phản hồi của momo
         $orderInfo = 'pay with MoMo';
         $requestType = 'payWithATM';
         $extraData = '';
         $orderGroupId = '';
         $autoCapture = true;
         $lang = 'vi';
-
         $amount = intval($booking->subtotal);
         $orderId = $partnerCode . time();
         $requestId = $orderId;
-
         $rawSignature = sprintf(
             'accessKey=%s&amount=%s&extraData=%s&ipnUrl=%s&orderId=%s&orderInfo=%s&partnerCode=%s&redirectUrl=%s&requestId=%s&requestType=%s',
             $accessKey,
@@ -56,9 +54,7 @@ class MomoController extends Controller
             $requestId,
             $requestType
         );
-
         $signature = hash_hmac('sha256', $rawSignature, $secretKey);
-
         $requestBody = [
             'partnerCode' => $partnerCode,
             'partnerName' => 'Test',
@@ -85,16 +81,16 @@ class MomoController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+    // phản hồi của momo
     public function callback(Request $request)
     {
         return ApiResponse(true, $request->all(), Response::HTTP_OK, messageResponseActionSuccess());
     }
-
+    // phản hồi xác nhận thanh toán thành công momo
     public function checkStatusTransaction(Request $request)
     {
-        $userId = Auth::id();
         $bookingId = $request->input('booking_id');
-        $booking = Booking::where('id', $bookingId)->where('user_id', $userId)->first();
+        $booking = Booking::find($bookingId);
         if (!$booking) {
             return response()->json(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
         }
@@ -102,7 +98,6 @@ class MomoController extends Controller
         if (!$orderId || !$bookingId) {
             return ApiResponse(false, [], Response::HTTP_BAD_REQUEST, 'Vui lòng kiểm tra lại');
         }
-
         $secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
         $accessKey = 'F8BBA842ECF85';
         $partnerCode = 'MOMO';
@@ -113,7 +108,6 @@ class MomoController extends Controller
             $partnerCode,
             $orderId
         );
-
         $signature = hash_hmac('sha256', $rawSignature, $secretKey);
         $requestBody = [
             'partnerCode' => $partnerCode,
@@ -126,15 +120,16 @@ class MomoController extends Controller
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
             ])->post('https://test-payment.momo.vn/v2/gateway/api/query', $requestBody);
-
             $responseData = $response->json();
-
             if ($responseData['resultCode'] == 0) {
-                $booking = Booking::where('id', $bookingId)->first();
-                if ($booking) {
-                    $booking->status = 'Thanh toán thành công';
-                    $booking->save();
-                }
+                $booking->status = 'Thanh toán thành công';
+                $booking->save();
+                $transaction = new Transaction();
+                $transaction->booking_id = $bookingId;
+                $transaction->subtotal = $booking->subtotal;
+                $transaction->payment_method = 'Thanh toán bằng Momo';
+                $transaction->status = 'Đã thanh toán';
+                $transaction->save();
             }
             return ApiResponse(true, $responseData, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {

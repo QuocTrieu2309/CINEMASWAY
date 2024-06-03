@@ -38,4 +38,8 @@ class Booking extends Model
     {
         return $this->hasMany(Showtime::class);
     }
+    public function transactions()
+    {
+        return $this->hasMany(Transaction::class);
+    }
 }

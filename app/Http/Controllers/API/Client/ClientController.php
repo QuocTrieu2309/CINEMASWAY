@@ -36,8 +36,6 @@ class ClientController extends Controller
      */
     public function updateTickets(ClientRequest $request)
     {
-        $request->validate([]);
-
         $subtotal = 0;
 
         DB::beginTransaction();
@@ -101,17 +99,16 @@ class ClientController extends Controller
 
                     if ($serviceModel->quantity < $service['quantity']) {
                         DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Dịch vụ ' . $serviceModel->name . 'đã hết');
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Dịch vụ ' . $serviceModel->name . ' đã hết');
                     }
 
-                    $serviceModel->quantity -= $service['quantity'];
-                    $serviceModel->save();
+                    $serviceModel->decrement('quantity', $service['quantity']);
 
                     $totalServicesForBooking += $service['quantity'];
 
                     if ($totalServicesForBooking > 3 * count($request->seats)) {
                         DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Mõi vé chỉ được tối đa 3 dịch vụ');
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Mỗi vé chỉ được tối đa 3 dịch vụ');
                     }
 
                     if (isset($serviceSummary[$service['service_id']])) {
@@ -138,8 +135,7 @@ class ClientController extends Controller
                 }
             }
 
-            $booking->subtotal = $subtotal;
-            $booking->save();
+            $booking->update(['subtotal' => $subtotal]);
 
             DB::commit();
 

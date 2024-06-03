@@ -33,7 +33,7 @@ class VoucherRequest extends FormRequest
             case 'POST':
                 switch ($currentMethod) {
                     case 'store':
-                        $voucherRules = [
+                        $rules = [
                             'code' => [
                                 'required',
                                 'string',
@@ -42,18 +42,18 @@ class VoucherRequest extends FormRequest
                                     return $query->where('deleted', 0);
                                 })
                             ],
-                            'pin' => [
+                            'type' => [
                                 'required',
-                                'string',
-                                'max:60',
-                                Rule::unique('vouchers')->where(function ($query) {
-                                    return $query->where('deleted', 0);
-                                })
+                                Rule::in([
+                                    Voucher::TYPE_BIRTHDAY,
+                                    Voucher::TYPE_MEMBER_NORMAL,
+                                    Voucher::TYPE_MEMBER_VIP,
+                                    Voucher::TYPE_MEMBER_PREMIUM,
+                                ])
                             ],
-                            'type' => 'required|string|max:60',
                             'value' => 'required|numeric',
-                            'start_date' => 'required|date',
-                            'end_date' => 'required|date|after:start_date',
+                            'start_date' => 'required|date_format:Y-m-d H:i:s',
+                            'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
                             'status' => [
                                 'required',
                                 Rule::in([
@@ -61,21 +61,8 @@ class VoucherRequest extends FormRequest
                                     Voucher::STATUS_EXPIRED,
                                 ])
                             ],
-                            'description' => 'required|string|max:1000',
+                            'description' => 'string|max:1000',
                         ];
-
-                        $rules = [
-                            'vouchers' => 'array',
-                            'vouchers.*.code' => $voucherRules['code'],
-                            'vouchers.*.pin' => $voucherRules['pin'],
-                            'vouchers.*.type' => $voucherRules['type'],
-                            'vouchers.*.value' => $voucherRules['value'],
-                            'vouchers.*.start_date' => $voucherRules['start_date'],
-                            'vouchers.*.end_date' => $voucherRules['end_date'],
-                            'vouchers.*.status' => $voucherRules['status'],
-                            'vouchers.*.description' => $voucherRules['description'],
-                        ];
-
                         break;
                 }
                 break;
@@ -91,15 +78,15 @@ class VoucherRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 })
                             ],
-                            'pin' => [
+                            'type' => [
                                 'required',
-                                'string',
-                                'max:60',
-                                Rule::unique('vouchers')->where(function ($query) {
-                                    return $query->where('deleted', 0)->where('id', '!=', $this->id);
-                                })
+                                Rule::in([
+                                    Voucher::TYPE_BIRTHDAY,
+                                    Voucher::TYPE_MEMBER_NORMAL,
+                                    Voucher::TYPE_MEMBER_VIP,
+                                    Voucher::TYPE_MEMBER_PREMIUM,
+                                ])
                             ],
-                            'type' => 'required|string|max:60',
                             'value' => 'required|numeric',
                             'start_date' => 'required|date_format:Y-m-d H:i:s',
                             'end_date' => 'required|date_format:Y-m-d H:i:s|after:start_date',
@@ -110,7 +97,7 @@ class VoucherRequest extends FormRequest
                                     Voucher::STATUS_EXPIRED,
                                 ])
                             ],
-                            'description' => 'required|string|max:1000',
+                            'description' => 'string|max:1000',
                         ];
                         break;
                 }

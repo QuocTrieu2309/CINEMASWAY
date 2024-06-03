@@ -20,7 +20,7 @@ return new class extends Migration
             $table->dateTime('start_date');
             $table->dateTime('end_date');
             $table->string('status', 60);
-            $table->text('description');
+            $table->text('description')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);

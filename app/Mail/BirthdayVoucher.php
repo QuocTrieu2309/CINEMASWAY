@@ -26,7 +26,7 @@ class BirthdayVoucher extends Mailable
 
     public function build()
     {
-        $voucher = Voucher::where('type', 'Birth Day')->first();
+        $voucher = Voucher::where('type',Voucher::TYPE_BIRTHDAY )->where('status',Voucher::STATUS_ACTIVE)->first();
         if (!$voucher) {
             return false;
         }

@@ -13,11 +13,12 @@ class Voucher extends Model
     const STATUS_ACTIVE = 'Active';
 
     const STATUS_EXPIRED = 'Expired';
-
+    const TYPE_BIRTHDAY = 'Birthday';
+    const TYPE_MEMBER_NORMAL = 'Member normal';
+    const TYPE_MEMBER_VIP = 'Member vip';
+    const TYPE_MEMBER_PREMIUM = 'Member premium';
     protected $fillable = [
-        'user_id',
         'code',
-        'pin',
         'type',
         'value',
         'start_date',

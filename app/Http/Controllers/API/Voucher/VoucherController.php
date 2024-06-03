@@ -59,35 +59,12 @@ class VoucherController extends Controller
     {
         try {
             $this->authorize('checkPermission', Voucher::class);
-            $inputData = $request->all();
-            $vouchersData = isset($inputData['vouchers']) ? $inputData['vouchers'] : [$inputData];
-            if (!is_array($vouchersData)) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Invalid data format');
+            $data = $request->all();
+            $cridential = Voucher::query()->create($data);
+            if(!$cridential){
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
-            $createdVouchers = [];
-            $errorMessages = [];
-            foreach ($vouchersData as $index => $voucherData) {
-                $existingCode = Voucher::where('code', $voucherData['code'])->first();
-                $existingPin = Voucher::where('pin', $voucherData['pin'])->first();
-                if ($existingCode && $existingPin) {
-                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã code: ' . $voucherData['code'] . ' và mã pin: ' . $voucherData['pin'] . ' đã tồn tại.';
-                } elseif ($existingCode) {
-                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã code: ' . $voucherData['code'] . ' đã tồn tại.';
-                } elseif ($existingPin) {
-                    $errorMessages[] = 'Voucher số ' . ($index + 1) . ': Mã pin: ' . $voucherData['pin'] . ' đã tồn tại.';
-                } else {
-                    $voucher = Voucher::create($voucherData);
-                    if (!$voucher) {
-                        $errorMessages[] = 'Voucher số ' . ($index + 1) . ': ' . messageResponseActionFailed();
-                    } else {
-                        $createdVouchers[] = $voucher;
-                    }
-                }
-            }
-            if (!empty($errorMessages)) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $errorMessages);
-            }
-            return ApiResponse(true, $createdVouchers, Response::HTTP_OK, messageResponseActionSuccess());
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -131,7 +108,6 @@ class VoucherController extends Controller
             empty($voucher) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $voucherUpdate = Voucher::where('id', $id)->update([
                 'code' => $request->get('code') ?? $voucher->code,
-                'pin' => $request->get('pin') ?? $voucher->pin,
                 'type' => $request->get('type') ?? $voucher->type,
                 'value' => $request->get('value') ?? $voucher->value,
                 'start_date' => $request->get('start_date') ?? $voucher->start_date,

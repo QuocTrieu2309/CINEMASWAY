@@ -11,10 +11,12 @@ use App\Models\SeatType;
 use App\Models\Service;
 use App\Models\Ticket;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use DivisionByZeroError;
 use Illuminate\Support\Facades\DB;
 use Milon\Barcode\DNS1D;
 use Illuminate\Http\Response;
-
+use Psr\Container\NotFoundExceptionInterface;
+use Psr\Container\ContainerExceptionInterface;
 
 class ClientController extends Controller
 {
@@ -23,6 +25,15 @@ class ClientController extends Controller
         $this->middleware('auth:sanctum');
     }
 
+    /**
+     * POST api/booking
+     *
+     * @param ClientRequest $request
+     * @return mixed
+     * @throws NotFoundExceptionInterface
+     * @throws ContainerExceptionInterface
+     * @throws DivisionByZeroError
+     */
     public function updateTickets(ClientRequest $request)
     {
         $request->validate([]);
@@ -59,13 +70,13 @@ class ClientController extends Controller
 
                 if (!$ticket) {
                     DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy vé cho chỗ đã đặt');
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không tìm thấy vé cho chỗ đã đặt');
                 }
 
                 $seat = Seat::findOrFail($seatId);
                 if ($seat->status !== Seat::STATUS_UNOCCUPIED) {
                     DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Ghế đã được đặt');
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Ghế đã được đặt');
                 }
 
                 $seatType = SeatType::findOrFail($seat->seat_type_id);
@@ -90,7 +101,7 @@ class ClientController extends Controller
 
                     if ($serviceModel->quantity < $service['quantity']) {
                         DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Dịch vụ ' . $serviceModel->name . 'đã hết');
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Dịch vụ ' . $serviceModel->name . 'đã hết');
                     }
 
                     $serviceModel->quantity -= $service['quantity'];
@@ -100,7 +111,7 @@ class ClientController extends Controller
 
                     if ($totalServicesForBooking > 3 * count($request->seats)) {
                         DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Mõi vé chỉ được tối đa 3 dịch vụ');
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Mõi vé chỉ được tối đa 3 dịch vụ');
                     }
 
                     if (isset($serviceSummary[$service['service_id']])) {

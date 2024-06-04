@@ -21,7 +21,6 @@ class FilterController extends Controller
                 ->with('cinemaScreen.cinema')
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);
-
             $result = [
                 'showtimes' => ShowtimeResource::collection($data),
                 'meta' => [
@@ -35,5 +34,43 @@ class FilterController extends Controller
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
+    }
+    public function filter(Request $request)
+    {
+        $query = Showtime::query();
+        if ($request->has('date')) {
+            $query->where('show_date', $request->date);
+        }
+        if ($request->has('city')) {
+            $query->whereHas('cinemaScreen.cinema', function ($q) use ($request) {
+                $q->where('city', $request->city);
+            });
+        }
+        if ($request->has('experiences')) {
+            $experiences = explode(':', $request->experiences);
+            if (count($experiences) === 2) {
+                $name = $experiences[0];
+                $subtitle = $experiences[1];
+                $query->whereHas('cinemaScreen.screen', function ($q) use ($name) {
+                    $q->where('name', $name);
+                });
+                $query->where('subtitle', $subtitle);
+            }
+        }
+        $result = $query->with('cinemaScreen.cinema')->get();
+        if ($result->isEmpty()) {
+            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có xuất chiếu nào');
+        }
+        $list = $result->map(function ($showtime) {
+            return [
+                'cinema_name' => $showtime->cinemaScreen->cinema->name,
+                'movie_id' => $showtime->movie->id,
+                'subtitle' => $showtime->subtitle,
+                'show_date' => $showtime->show_date,
+                'show_time' => $showtime->show_time,
+                'status' => $showtime->status,
+            ];
+        });
+        return ApiResponse(true, $list, Response::HTTP_OK, messageResponseActionSuccess());
     }
 }

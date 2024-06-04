@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API\Vnpay;
 
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
+use App\Models\Transaction;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 
@@ -72,17 +73,31 @@ class VnpayController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef)
+    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef, vnp_Amount)
     public function send(Request $request)
     {
         try {
             if ($request->vnp_TransactionStatus == 00) {
                 $booking = Booking::where('id', $request->vnp_TxnRef)->where('deleted', 0)->first();
                 empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-                Booking::where('id', $request->vnp_TxnRef)->update([
+                $bookingUpdate = Booking::where('id', $request->vnp_TxnRef)->update([
                     'status' => "Thanh toán thành công"
                 ]);
-                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+                if ($bookingUpdate) {
+                    $rl = Transaction::create([
+                        "booking_id" => $request->vnp_TxnRef,
+                        "subtotal" => $request->vnp_Amount,
+                        "payment_method" => "Vnpay",
+                        "status" => Transaction::STATUS_SUCCESS,
+                    ]);
+                    if ($rl) {
+                        return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+                    } else {
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                    }
+                } else {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                }
             } else {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Đã hủy thanh toán");
             }

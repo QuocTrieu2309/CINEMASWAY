@@ -24,10 +24,17 @@ class Booking extends Model
         'created_at',
         'updated_at',
     ];
+  
     public function users()
     {
         return $this->hasMany(User::class);
     }
+  
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'booking_services');
+    }
+  
     public function showtimes()
     {
         return $this->hasMany(Showtime::class);

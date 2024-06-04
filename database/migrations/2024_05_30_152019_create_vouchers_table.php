@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('vouchers', function (Blueprint $table) {
             $table->id();
             $table->string('code', 60);
-            $table->string('pin', 60);
             $table->string('type', 60);
             $table->decimal('value', 8, 2);
             $table->dateTime('start_date');

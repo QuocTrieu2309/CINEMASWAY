@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Config;
 
 class FilterController extends Controller
 {
+    // lấy tất cả thông tin xuất chiếu kèm rạp
     public function index(Request $request)
     {
         try {
@@ -35,6 +36,7 @@ class FilterController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+     // tìm kiếm theo điều kiện
     public function filter(Request $request)
     {
         $query = Showtime::query();

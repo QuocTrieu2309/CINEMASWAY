@@ -9,6 +9,7 @@ class SeatType extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'cinema_screen_id',
         'name',
         'price',
         'promotion_price',

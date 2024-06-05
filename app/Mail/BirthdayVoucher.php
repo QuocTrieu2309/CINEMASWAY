@@ -45,7 +45,7 @@ class BirthdayVoucher extends Mailable
         if ($userVoucher) {
             return $this->view('emails.birthday_voucher')
                 ->with([
-                    'name' => $this->user->name,
+                    'name' => $this->user->full_name,
                     'voucherCode' =>  $voucherCode,
                     'pinCode' => $userVoucher->pin
                 ]);

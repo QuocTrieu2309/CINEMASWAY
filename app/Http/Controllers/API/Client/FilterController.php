@@ -36,7 +36,7 @@ class FilterController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-     // tìm kiếm theo điều kiện
+    // filter show times
     public function filter(Request $request)
     {
         $query = Showtime::query();
@@ -59,7 +59,7 @@ class FilterController extends Controller
                 $query->where('subtitle', $subtitle);
             }
         }
-        $result = $query->with('cinemaScreen.cinema','movie','cinemaScreen.screen')->get();
+        $result = $query->with('cinemaScreen.cinema', 'movie', 'cinemaScreen.screen')->get();
         if ($result->isEmpty()) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có xuất chiếu nào');
         }
@@ -67,12 +67,60 @@ class FilterController extends Controller
             return [
                 'cinema_city' => $showtime->cinemaScreen->cinema->city,
                 'cinema_name' => $showtime->cinemaScreen->cinema->name,
-                'screen_name'=>$showtime->cinemaScreen->screen->name,
+                'screen_name' => $showtime->cinemaScreen->screen->name,
                 'subtitle' => $showtime->subtitle,
                 'movie_name' => $showtime->movie->title,
                 'show_date' => $showtime->show_date,
                 'show_time' => $showtime->show_time,
                 'status' => $showtime->status,
+            ];
+        });
+        return ApiResponse(true, $list, Response::HTTP_OK, messageResponseActionSuccess());
+    }
+    //filterMovie
+    public function filterMovie(Request $request)
+    {
+        $query = Showtime::query();
+
+        if ($request->has('date')) {
+            $query->where('show_date', $request->date);
+        }
+        if ($request->has('city')) {
+            $query->whereHas('cinemaScreen.cinema', function ($q) use ($request) {
+                $q->where('city', $request->city);
+            });
+        }
+        if ($request->has('genre')) {
+            $query->whereHas('movie', function ($q) use ($request) {
+                $q->where('genre', $request->genre);
+            });
+        }
+        if ($request->has('experiences')) {
+            $experiences = explode(':', $request->experiences);
+            if (count($experiences) === 2) {
+                $name = $experiences[0];
+                $subtitle = $experiences[1];
+                $query->whereHas('cinemaScreen.screen', function ($q) use ($name) {
+                    $q->where('name', $name);
+                });
+                $query->where('subtitle', $subtitle);
+            }
+        }
+        $result = $query->with('cinemaScreen.cinema', 'movie', 'cinemaScreen.screen')->get();
+        if ($result->isEmpty()) {
+            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có bộ phim nào');
+        }
+        $list = $result->map(function ($movie) {
+            return [
+                'cinema_city' => $movie->cinemaScreen->cinema->city,
+                'cinema_name' => $movie->cinemaScreen->cinema->name,
+                'screen_name' => $movie->cinemaScreen->screen->name,
+                'subtitle' => $movie->subtitle,
+                'movie_name' => $movie->movie->title,
+                'movie_genre' => $movie->movie->genre,
+                'movie_duration' => $movie->movie->duration,
+                'show_date' => $movie->show_date,
+                'show_time' => $movie->show_time,
             ];
         });
         return ApiResponse(true, $list, Response::HTTP_OK, messageResponseActionSuccess());

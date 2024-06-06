@@ -59,15 +59,17 @@ class FilterController extends Controller
                 $query->where('subtitle', $subtitle);
             }
         }
-        $result = $query->with('cinemaScreen.cinema','movie')->get();
+        $result = $query->with('cinemaScreen.cinema','movie','cinemaScreen.screen')->get();
         if ($result->isEmpty()) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có xuất chiếu nào');
         }
         $list = $result->map(function ($showtime) {
             return [
+                'cinema_city' => $showtime->cinemaScreen->cinema->city,
                 'cinema_name' => $showtime->cinemaScreen->cinema->name,
-                'movie_name' => $showtime->movie->title,
+                'screen_name'=>$showtime->cinemaScreen->screen->name,
                 'subtitle' => $showtime->subtitle,
+                'movie_name' => $showtime->movie->title,
                 'show_date' => $showtime->show_date,
                 'show_time' => $showtime->show_time,
                 'status' => $showtime->status,

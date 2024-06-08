@@ -11,7 +11,7 @@ class Ticket extends Model
     use HasFactory;
     protected $fillable = [
         'booking_id',
-        'seat_number',
+        'seat_id',
         'deleted'
     ];
     protected $hidden = [
@@ -28,15 +28,6 @@ class Ticket extends Model
     public function booking(){
         return $this->belongsTo(Booking::class);
     }
-
-    /**
-     *
-     * @return BelongsTo
-     */
-    public function showtime(){
-        return $this->belongsTo(Showtime::class);
-    }
-
     /**
      *
      * @return BelongsTo

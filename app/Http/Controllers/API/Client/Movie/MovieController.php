@@ -8,10 +8,11 @@ use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 
 class MovieController extends Controller
 {
-    // Post api/client/movie (truyền status: không truyền-tất cả,1-đang chiếu,2-sắp chiếu)
+    // Get api/client/movie (truyền status: không truyền-tất cả, 1-đang chiếu, 2-sắp chiếu)
     public function index(Request $request)
     {
         try {
@@ -35,6 +36,20 @@ class MovieController extends Controller
                 ],
             ];
             return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+    // Get api/client/movie/{id} 
+    public function show($id)
+    {
+        try {
+            $movie = Movie::where('id', $id)->where('deleted', 0)->first();
+            empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'movie' => new MovieResource($movie),
+            ];
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

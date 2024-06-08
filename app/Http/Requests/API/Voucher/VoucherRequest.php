@@ -73,6 +73,7 @@ class VoucherRequest extends FormRequest
                             'code' => [
                                 'required',
                                 'string',
+                                'min:5',
                                 'max:60',
                                 Rule::unique('vouchers')->where(function ($query) {
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
@@ -111,37 +112,13 @@ class VoucherRequest extends FormRequest
         return [
             'required' => 'Trường :attribute là bắt buộc.',
             'string' => 'Trường :attribute phải là chuỗi ký tự.',
+            'min' => 'Trường :attribute tối thiểu :min ký tự.',
             'max' => 'Trường :attribute không được dài quá :max ký tự.',
             'unique' => 'Trường :attribute đã tồn tại.',
             'numeric' => 'Trường :attribute phải là số.',
             'date' => 'Trường :attribute phải là ngày hợp lệ.',
             'end_date.after' => 'Trường :attribute phải là ngày sau ngày bắt đầu.',
             'in' => ':attribute phải nằm trong :in',
-            'vouchers.array' => 'Danh sách :attribute phải là một mảng.',
-            'vouchers.*.code.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.code.string' => 'Trường :attribute phải là chuỗi ký tự.',
-            'vouchers.*.code.max' => 'Trường :attribute không được dài quá :max ký tự.',
-            'vouchers.*.code.unique' => 'Trường :attribute đã tồn tại.',
-            'vouchers.*.pin.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.pin.string' => 'Trường :attribute phải là chuỗi ký tự.',
-            'vouchers.*.pin.max' => 'Trường :attribute không được dài quá :max ký tự.',
-            'vouchers.*.pin.unique' => 'Trường :attribute đã tồn tại.',
-            'vouchers.*.type.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.type.string' => 'Trường :attribute phải là chuỗi ký tự.',
-            'vouchers.*.type.max' => 'Trường :attribute không được dài quá :max ký tự.',
-            'vouchers.*.value.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.value.numeric' => 'Trường :attribute phải là số.',
-            'vouchers.*.value.max' => 'Trường :attribute không được vượt quá :max.',
-            'vouchers.*.start_date.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.start_date.date' => 'Trường :attribute phải là ngày hợp lệ.',
-            'vouchers.*.end_date.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.end_date.date' => 'Trường :attribute phải là ngày hợp lệ.',
-            'vouchers.*.end_date.after' => 'Trường :attribute phải là ngày sau ngày bắt đầu.',
-            'vouchers.*.status.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.status.in' => 'Trường :attribute phải nằm trong :in.',
-            'vouchers.*.description.required' => 'Trường :attribute là bắt buộc.',
-            'vouchers.*.description.string' => 'Trường :attribute phải là chuỗi ký tự.',
-            'vouchers.*.description.max' => 'Trường :attribute không được dài quá :max ký tự.',
         ];
     }
 
@@ -149,22 +126,12 @@ class VoucherRequest extends FormRequest
     {
         return [
             'code' => 'Mã',
-            'pin' => 'Mã pin',
             'type' => 'Loại',
             'value' => 'Giá trị',
             'start_date' => 'Ngày bắt đầu',
             'end_date' => 'Ngày kết thúc',
             'status' => 'Trạng thái',
             'description' => 'Mô tả',
-            'vouchers' => 'voucher',
-            'vouchers.*.code' => 'mã',
-            'vouchers.*.pin' => 'mã pin',
-            'vouchers.*.type' => 'loại',
-            'vouchers.*.value' => 'giá trị',
-            'vouchers.*.start_date' => 'ngày bắt đầu',
-            'vouchers.*.end_date' => 'ngày kết thúc',
-            'vouchers.*.status' => 'trạng thái',
-            'vouchers.*.description' => 'mô tả',
         ];
     }
 

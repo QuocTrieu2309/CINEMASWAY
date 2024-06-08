@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('movie_id');
             $table->unsignedBigInteger('cinema_screen_id');
-            $table->string('translation_id');
+            $table->string('subtitle');
             $table->date('show_date');
-            $table->dateTime('show_time');
+            $table->time('show_time');
             $table->string('status');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();

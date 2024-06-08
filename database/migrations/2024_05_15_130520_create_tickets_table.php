@@ -14,14 +14,13 @@ return new class extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('booking_id');
-            $table->unsignedBigInteger('showtime_id');
-            $table->unsignedBigInteger('seat_id');
-            $table->string('code', 60);
-            $table->string('status', 60);
+            $table->string('seat_id');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
             $table->timestamps();
+            $table->foreign('booking_id')->references('id')->on('bookings');
+            $table->foreign('seat_id')->references('id')->on('seats');
         });
     }
 

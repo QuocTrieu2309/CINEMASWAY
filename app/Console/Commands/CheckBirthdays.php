@@ -29,13 +29,17 @@ class CheckBirthdays extends Command
         parent::__construct();
     }
     public function handle()
-    {
-        $today = now()->format('m-d');
-        $users = User::whereRaw('DATE_FORMAT(birthday, "%m-%d") = ?', [$today])->get();
-
+{
+    $today = now()->format('m-d');
+    User::whereRaw('DATE_FORMAT(birth_date, "%m-%d") = ?', [$today])->chunk(100, function ($users) {
         foreach ($users as $user) {
-            Mail::to($user->email)->send(new BirthdayVoucher($user));
-            $this->info('Voucher sent to ' . $user->email);
+            try {
+                Mail::to($user->email)->send(new BirthdayVoucher($user));
+                $this->info('Voucher sent to ' . $user->email);
+            } catch (\Exception $e) {
+                $this->error('Failed to send voucher to ' . $user->email . '. Error: ' . $e->getMessage());
+            }
         }
-    }
+    });
+}
 }

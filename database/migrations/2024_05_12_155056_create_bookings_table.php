@@ -11,18 +11,20 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('booking_services', function (Blueprint $table) {
+        Schema::create('bookings', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger("booking_id");
-            $table->unsignedBigInteger("service_id");
-            $table->unsignedInteger("quantity")->comment("So luong dich vu");
+            $table->unsignedBigInteger("user_id");
+            $table->unsignedBigInteger('showtime_id');
+            $table->string('code')->unique();
+            $table->unsignedInteger("quantity")->comment("So luong ve");
             $table->unsignedDecimal("subtotal", 8, 2)->comment("Tong so tien");
+            $table->string("status");
             $table->unsignedBigInteger("created_by")->nullable();
             $table->unsignedBigInteger("updated_by")->nullable();
             $table->integer('deleted')->default(0);
             $table->timestamps();
-            $table->foreign('booking_id')->references('id')->on('bookings');
-            $table->foreign('service_id')->references('id')->on('services');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('showtime_id')->references('id')->on('showtimes');
         });
     }
 
@@ -31,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('booking_services');
+        Schema::dropIfExists('bookings');
     }
 };

@@ -5,14 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SeatType extends Model
+class SeatShowtime extends Model
 {
     use HasFactory;
+    const STATUS_AVAILABLE = 'Available'; // Còn trống
+    const STATUS_HELD = 'Held';           // Đang bị giữ
+    const STATUS_SELECTED = 'Selected';   // Đang chọn
+    const STATUS_RESERVED = 'Reserved';   // Đã đặt
     protected $fillable = [
-        'screen_id',
-        'name',
-        'price',
-        'promotion_price',
+        'user_id',
+        'seat_id',
+        'showtime_id',
+        'status',
         'deleted'
     ];
     protected $hidden = [
@@ -23,8 +27,5 @@ class SeatType extends Model
     ];
     public function seats(){
         return $this->hasMany(Seat::class);
-    }
-    public function screen(){
-        return $this->belongsTo(Screen::class);
     }
 }

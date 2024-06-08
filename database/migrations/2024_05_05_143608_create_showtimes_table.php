@@ -15,9 +15,9 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('movie_id');
             $table->unsignedBigInteger('cinema_screen_id');
-            $table->unsignedBigInteger('translation_id');
+            $table->string('subtitle');
             $table->date('show_date');
-            $table->dateTime('show_time');
+            $table->time('show_time');
             $table->string('status');
             $table->unsignedBigInteger('created_by')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
@@ -25,7 +25,6 @@ return new class extends Migration
             $table->timestamps();
             $table->foreign('movie_id')->references('id')->on('movies');
             $table->foreign('cinema_screen_id')->references('id')->on('cinema_screens');
-            $table->foreign('translation_id')->references('id')->on('translations');
         });
     }
 

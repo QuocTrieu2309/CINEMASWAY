@@ -11,6 +11,8 @@ class Booking extends Model
     protected $table = "bookings";
     protected $primaryKey = "id";
     public $timestamps = true;
+    const STATUS_PAID = 'Paid';
+    const STATUS_UNPAID = 'Unpaid';
     protected $fillable = [
         'user_id',
         'showtime_id',

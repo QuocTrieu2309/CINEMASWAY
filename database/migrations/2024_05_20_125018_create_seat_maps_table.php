@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('seat_maps', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('cinema_screen_id');
+            $table->integer('seat_total');
             $table->integer('total_row');
             $table->integer('total_column');
             $table->string('layout');

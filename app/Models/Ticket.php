@@ -9,17 +9,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Ticket extends Model
 {
     use HasFactory;
-    const STATUS_AVAILABLE = 'Available'; // Còn trống
-    const STATUS_HELD = 'Held';           // Đang bị giữ
-    const STATUS_SELECTED = 'Selected';   // Đang chọn
-    const STATUS_RESERVED = 'Reserved';   // Đã đặt
-    const STATUS_PAID = 'Paid';           // Đã thanh toán
     protected $fillable = [
         'booking_id',
-        'showtime_id',
-        'seat_id',
-        'code',
-        'status',
+        'seat_number',
         'deleted'
     ];
     protected $hidden = [

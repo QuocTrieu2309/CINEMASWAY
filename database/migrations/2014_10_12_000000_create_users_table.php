@@ -17,11 +17,12 @@ return new class extends Migration
             $table->string('full_name');
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
+            $table->string('email_verification_token')->nullable();
             $table->string('password');
             $table->unsignedBigInteger('role_id');
             $table->string('phone');
             $table->string('gender');
-            $table->datetime('birth_date');
+            $table->date('birth_date');
             $table->string('avatar')->nullable();
             $table->string('status')->default(User::STATUS_ACTIVE);
             $table->unsignedBigInteger('created_by')->nullable();

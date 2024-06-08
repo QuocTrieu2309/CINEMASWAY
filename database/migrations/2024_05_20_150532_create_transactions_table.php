@@ -21,6 +21,7 @@ return new class extends Migration
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
             $table->timestamps();
+            $table->foreign('booking_id')->references('id')->on('bookings');
         });
     }
 

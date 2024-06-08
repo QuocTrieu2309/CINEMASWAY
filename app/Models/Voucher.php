@@ -38,8 +38,8 @@ class Voucher extends Model
      *
      * @return BelongsTo
      */
-    public function user()
+    public function userVouchers()
     {
-        return $this->belongsTo(User::class);
+        return $this->hasMany(UserVoucher::class);
     }
 }

@@ -20,8 +20,9 @@ class Service extends Model
         'created_at',
         'updated_at',
     ];
-    public function bookings()
+    public function bookingServices()
     {
-        return $this->belongsToMany(Booking::class, 'booking_services');
+        return $this->hasMany(BookingService::class);
     }
+
 }

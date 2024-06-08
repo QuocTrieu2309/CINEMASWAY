@@ -66,4 +66,7 @@ class User extends Authenticatable
     public function permission(){
         return $this->hasManyThrough(Permission::class, UserPermission::class, 'user_id', 'id', 'id', 'permission_id');
     }
+    public function userVouchers(){
+        return $this->hasMany(UserVoucher::class);
+    }
 }

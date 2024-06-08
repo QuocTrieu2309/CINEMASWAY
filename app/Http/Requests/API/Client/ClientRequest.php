@@ -24,39 +24,48 @@ class ClientRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'showtime_id' => 'required|exists:showtimes,id',
-            'seats' => 'required|array',
-            'seats.*' => 'required|exists:seats,id',
-            'services' => 'sometimes|array',
-            'services.*.service_id' => 'required|exists:services,id',
-            'services.*.quantity' => 'required|integer|min:1',
-        ];
+        $currentMethod = $this->route()->getActionMethod();
+        $rules = [];
+        switch ($this->method()) {
+            case 'POST':
+                switch ($currentMethod) {
+                    case 'createBooking':
+                        $rules = [
+                            'showtime_id' => 'required|exists:showtimes,id',
+                            'quantity' => 'required|integer|min:1|max:8',
+                            'subtotal'=> 'required|numeric|min:50000|max:2000000' 
+                        ];
+                        break;
+                        case 'createBooingService':
+                            $rules = [
+                                'booking_id' => 'required|exists:bookings,id',
+                                'services' => 'required',
+                            ];
+                            break;
+                }
+                break;
+        }
+        return $rules;
     }
-
     public function messages()
     {
         return [
-            'required' => ':attribute là bắt buộc.',
-            'exists' => ':attribute không tồn tại.',
-            'array' => ':attribute không hợp lệ.',
-            'integer' => ':attribute phải là số nguyên.',
-            'min' => ':attribute ít nhất là :min.',
+            'required' => ":attribute không được để trống",
+            'exists' => ":attribute không tồn tại",
+            'min' =>":attribute có giá trị tối thiểu là:min",
+            'max' =>":attribute có giá trị tối đa là:max",
         ];
     }
-
     public function attributes()
     {
         return [
-            'showtime_id' => 'suất chiếu',
-            'seats' => 'danh sách ghế',
-            'seats.*' => 'ghế',
-            'services' => 'danh sách dịch vụ',
-            'services.*.service_id' => 'dịch vụ',
-            'services.*.quantity' => 'số lượng dịch vụ',
+            'showtime_id' => 'Suất chiếu',
+            'quantity' => 'Số lượng',
+            'subtotal' => 'Số tiền',
+            'booking_id' => 'Booking',
+            'services'=> 'Dịch vụ'
         ];
     }
-
     public function failedValidation(Validator $validator)
     {
         $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());

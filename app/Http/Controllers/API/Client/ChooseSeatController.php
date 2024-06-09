@@ -42,25 +42,25 @@ class ChooseSeatController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         try {
-            // $user_id = auth('sanctum')->user()->id;
-            $user_id = 2;
+            $user_id = auth('sanctum')->user()->id;
             $showtime_id = $request->showtime_id;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
             if (!$cinemaScreen) {
-                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Cinema screen not found');
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Cinema Screen');
             }
             $seatMap = SeatMap::where('cinema_screen_id', $cinemaScreen->id)
                 ->where('deleted', 0)
                 ->first();
             if (!$seatMap) {
-                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'SeatMap not found');
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Seat Map');
             }
             $layoutArr = explode('|', $seatMap->layout);
             $seatAll = Seat::with('seatType', 'seatShowtime')
                 ->where('cinema_screen_id', $seatMap->cinema_screen_id)
                 ->where('status', Seat::STATUS_OCCUPIED)
+                ->where('deleted', 0)
                 ->get();
             $detail = [];
             $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
@@ -145,8 +145,7 @@ class ChooseSeatController extends Controller
      */
     public function updateStatusSeat(Request $request)
     {
-        // $user_id = auth('sanctum')->user()->id;
-        $user_id = 1;
+        $user_id = auth('sanctum')->user()->id;
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:seats,id',
         ], [

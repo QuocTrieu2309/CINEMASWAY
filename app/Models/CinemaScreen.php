@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class CinemaScreen extends Model
 {
     use HasFactory;
-    protected $fillable=[
+    protected $fillable = [
         'cinema_id',
         'screen_id',
     ];
@@ -19,12 +19,20 @@ class CinemaScreen extends Model
         'updated_at',
     ];
 
-    public function cinema(){
+    public function cinema()
+    {
         return $this->belongsTo(Cinema::class);
     }
-    public function screen(){
+    public function screen()
+    {
         return $this->belongsTo(Screen::class);
     }
-
-
+    public function seatMaps()
+    {
+        return $this->hasMany(SeatMap::class);
+    }
+    public function seats()
+    {
+        return $this->hasMany(Seat::class);
+    }
 }

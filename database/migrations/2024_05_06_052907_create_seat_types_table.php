@@ -13,7 +13,6 @@ return new class extends Migration
     {
         Schema::create('seat_types', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('screen_id');
             $table->string('name');
             $table->decimal('price', 8, 2); 
             $table->decimal('promotion_price', 8, 2);
@@ -21,7 +20,6 @@ return new class extends Migration
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->integer('deleted')->default(0);
             $table->timestamps();
-            $table->foreign('screen_id')->references('id')->on('screens');
         });
     }
 

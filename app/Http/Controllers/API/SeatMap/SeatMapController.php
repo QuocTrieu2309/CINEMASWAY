@@ -50,6 +50,7 @@ class SeatMapController extends Controller
         try {
             $this->authorize('checkPermission', SeatMap::class);
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
+            empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $layout = $seatMap->layout;
             $layoutArr  = explode('|', $layout);
             $seatAll = Seat::where('cinema_screen_id',$seatMap->cinema_screen_id)->get();
@@ -73,6 +74,17 @@ class SeatMapController extends Controller
                     $noSeat[] = [];
                     array_splice($detail, $i, 0, $noSeat);
                 } else {
+                    $seatChecks = Seat::where('seat_number', 'LIKE',  $characterArr[$i] . '%')
+                    ->first();
+                    if(! $seatChecks){
+                        $layoutRow = str_replace('X', '', $layoutArr[$i]);
+                        for($z = 0; $z < Str::length($layoutRow); $z++){
+                            $detail[$i][] =  [
+                                'seat_number' => '-',
+                                'type' => ''
+                            ];
+                        }
+                    }
                     for ($j = 0; $j < Str::length($layoutArr[$i]); $j++) {
                         if ($layoutArr[$i][$j] == 'X') {
                             $noSeatNumber = [
@@ -87,11 +99,7 @@ class SeatMapController extends Controller
                     }
                 }
             }
-
-            empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $data = [
-                'seatMap' => new  SeatMapResource($seatMap),
-            ];
+            ksort($detail);
             return ApiResponse(true, $detail, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

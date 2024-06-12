@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\API\SeatType;
 
+use App\Models\SeatType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Response;
@@ -34,9 +35,20 @@ class SeatTypeRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
+                                Rule::in([
+                                    SeatType::SEAT_TYPE_C_2D,
+                                    SeatType::SEAT_TYPE_N_2D,
+                                    SeatType::SEAT_TYPE_V_2D,
+                                    SeatType::SEAT_TYPE_C_3D,
+                                    SeatType::SEAT_TYPE_V_3D,
+                                    SeatType::SEAT_TYPE_N_3D,
+                                    SeatType::SEAT_TYPE_C_4D,
+                                    SeatType::SEAT_TYPE_V_4D,
+                                    SeatType::SEAT_TYPE_N_4D,
+                                ]),
                                 Rule::unique('seat_types')->where(function ($query) {
                                     return $query->where('deleted', 0);
-                                })
+                                }),
                             ],
                             'price' => 'required|numeric|min:10000',
                             'promotion_price' => [
@@ -44,8 +56,8 @@ class SeatTypeRequest extends FormRequest
                                 'numeric',
                                 'min:0',
                                 function ($attribute, $value, $fail) {
-                                    if ($value >= $this->input('price')) {
-                                        $fail('Trường ' . $attribute . ' phải có giá trị nhỏ hơn giá gốc.');
+                                    if ($value < $this->input('price')) {
+                                        $fail('Trường ' . $attribute . ' phải có giá trị lớn hơn giá gốc.');
                                     }
                                 },
                             ],
@@ -59,9 +71,20 @@ class SeatTypeRequest extends FormRequest
                         $rules = [
                             'name' => [
                                 'required',
+                                Rule::in([
+                                    SeatType::SEAT_TYPE_C_2D,
+                                    SeatType::SEAT_TYPE_N_2D,
+                                    SeatType::SEAT_TYPE_V_2D,
+                                    SeatType::SEAT_TYPE_C_3D,
+                                    SeatType::SEAT_TYPE_V_3D,
+                                    SeatType::SEAT_TYPE_N_3D,
+                                    SeatType::SEAT_TYPE_C_4D,
+                                    SeatType::SEAT_TYPE_V_4D,
+                                    SeatType::SEAT_TYPE_N_4D,
+                                ]),
                                 Rule::unique('seat_types')->where(function ($query) {
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
-                                })
+                                }),
                             ],
                             'price' => 'required|numeric|min:10000',
                             'promotion_price' => [
@@ -69,8 +92,8 @@ class SeatTypeRequest extends FormRequest
                                 'numeric',
                                 'min:0',
                                 function ($attribute, $value, $fail) {
-                                    if ($value >= $this->input('price')) {
-                                        $fail('Trường ' . $attribute . ' phải có giá trị nhỏ hơn giá gốc.');
+                                    if ($value < $this->input('price')) {
+                                        $fail('Trường ' . $attribute . ' phải có giá trị lớn hơn giá gốc.');
                                     }
                                 },
                             ],

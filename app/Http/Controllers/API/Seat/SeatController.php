@@ -7,6 +7,7 @@ use App\Http\Requests\API\Seat\SeatRequest;
 use App\Http\Resources\API\Seat\SeatResource;
 use App\Models\Seat;
 use App\Models\SeatMap;
+use App\Models\SeatType;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -54,6 +55,11 @@ class SeatController extends Controller
         try {
             $this->authorize('checkPermission', Seat::class);
             $data  = $request->all();
+            $seatType = SeatType::find($request->seat_type_id);
+            if(!$seatType){
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseNotFound());
+            }
+            $type = $seatType->name;
             $seatAllScreen  = Seat::where('cinema_screen_id', $request->cinema_screen_id)->get();
             $seatMap = SeatMap::where('cinema_screen_id', $request->cinema_screen_id)->first();
             $totalSeatMap = $seatMap->seat_total;
@@ -77,9 +83,21 @@ class SeatController extends Controller
             if (($indexCharacter + 1) >  $totalRow) {
                 return ApiResponse(false, $totalRow, Response::HTTP_BAD_REQUEST, "Dãy ghế cao nhất của phòng chiếu được bắt đầu bởi kí tự" . " " . $characterArr[$totalRow - 1]);
             } else {
-                $layoutRow =  $layoutArr[$indexCharacter + 1];
+                $layoutRow =  $layoutArr[$indexCharacter];
                 $layoutRow = str_replace('X', '', $layoutRow);
                 $count = Str::length($layoutRow);
+                $seatMapType = $layoutRow[0];
+                $checkType = "";
+                if($seatMapType == 'N'){
+                     $checkType = 'thường';
+                }elseif($seatMapType == 'V'){
+                    $checkType = 'vip';
+                }elseif($seatMapType == 'C'){
+                    $checkType = 'đôi';
+                }
+                if (!str_contains($type,  $checkType)) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Loại ghế không đúng so với loại ghế trong seat map.");
+                }
                 if ($characterNumber > $count) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Số ghế không được lớn hơn số ghế đang sử dụng trong dãy");
                 }

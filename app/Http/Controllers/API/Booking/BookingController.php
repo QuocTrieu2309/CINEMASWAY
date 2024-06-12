@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\Booking;
 
 use App\Http\Controllers\Controller;
-// use App\Http\Requests\API\Booking\BookingRequest;
 use App\Http\Resources\API\Booking\BookingResource;
+use App\Http\Resources\API\BookingService\BookingServiceResource;
 use App\Models\Booking;
+use App\Models\BookingService;
+use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -50,10 +52,25 @@ class BookingController extends Controller
             $this->authorize('checkPermission', Booking::class);
             $booking = Booking::where('id', $id)->where('deleted', 0)->first();
             empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $data = [
-                'booking' => new  BookingResource($booking),
+            $data['booking'] =  new  BookingResource($booking);
+            $bookingServices = BookingService::where('booking_id',$booking->id)->get();
+            $total = 0;
+            $data['services'] = BookingServiceResource::collection( $bookingServices);
+            foreach($bookingServices as $bookingService){   
+                $total = $total +  $bookingService->subtotal;
+            }
+            $tickets = Ticket::where('booking_id',$booking->id)->get();
+            if(!$tickets){
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, messageResponseActionFailed());
+            }
+            $quantity = count( $tickets);
+            $ticketSubtotal = ($booking->subtotal)-$total;
+            $data['ticket'] = [
+                'quantity'=> $quantity,
+                'subtotal'=> $ticketSubtotal
             ];
-            return ApiResponse(true,   $data, Response::HTTP_OK, messageResponseData());
+            
+            return ApiResponse(true,$data, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

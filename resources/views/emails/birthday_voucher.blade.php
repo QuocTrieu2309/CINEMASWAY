@@ -4,8 +4,8 @@
     <title>Birthday Voucher</title>
 </head>
 <body>
-    <h1>Happy Birthday, {{ $name }}!</h1>
-    <p>As a gift, here is your voucher code: {{ $voucherCode }}</p>
-    <p>Pin code: {{ $pinCode }}</p>
+    <h1>Chúc mừng sinh nhật thành viên, {{ $name }}!</h1>
+    <p>Như là một món quà, đây là mã voucher của bạn: {{ $voucherCode }}</p>
+    <p>Để nhận món quà vui lòng đến quầy vé của Rạp để nhận. Vui lòng mang theo căn cước công dân hoặc giấy tờ tùy thân để xác nhận thông tin </p>
 </body>
 </html>

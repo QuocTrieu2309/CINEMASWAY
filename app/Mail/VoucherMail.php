@@ -2,22 +2,18 @@
 
 namespace App\Mail;
 
-use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Content;
-use Illuminate\Mail\Mailables\Envelope;
-use Illuminate\Queue\SerializesModels;
+use App\Models\User;
 use App\Models\Voucher;
 use App\Models\UserVoucher;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Mail\Mailables\Envelope;
 
-class BirthdayVoucher extends Mailable
+class VoucherMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    /**
-     * Create a new message instance.
-     */
     public $user;
     public function __construct($user)
     {
@@ -26,7 +22,7 @@ class BirthdayVoucher extends Mailable
 
     public function build()
     {
-        $voucher = Voucher::where('type',Voucher::TYPE_BIRTHDAY )->where('status',Voucher::STATUS_ACTIVE)->first();
+        $voucher = Voucher::where('type',Voucher::TYPE_HOLIDAY )->where('status',Voucher::STATUS_ACTIVE)->first();
         if (!$voucher) {
             return false;
         }
@@ -40,10 +36,10 @@ class BirthdayVoucher extends Mailable
             'user_id' => $this->user->id,
             'voucher_id' => $voucherID,
             'pin' => $pin,
-            'status' => UserVoucher::STATUS_ACTIVE
+            'status' => UserVoucher::STATUS_INACTIVE
         ]);
         if ($userVoucher) {
-            return $this->view('emails.birthday_voucher')
+            return $this->view('emails.holiday_voucher')
                 ->with([
                     'name' => $this->user->full_name,
                     'voucherCode' =>  $voucherCode,
@@ -58,27 +54,7 @@ class BirthdayVoucher extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Lời chúc sinh nhật tới từ Cinema Go',
+            subject: 'Lời chúc ngày lễ tới từ Cinema Go',
         );
-    }
-
-    /**
-     * Get the message content definition.
-     */
-    // public function content(): Content
-    // {
-    //     return new Content(
-    //         view: 'view.name',
-    //     );
-    // }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

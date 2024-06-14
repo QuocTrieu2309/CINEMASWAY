@@ -17,6 +17,7 @@ class Voucher extends Model
     const TYPE_MEMBER_NORMAL = 'Member normal';
     const TYPE_MEMBER_VIP = 'Member vip';
     const TYPE_MEMBER_PREMIUM = 'Member premium';
+    const TYPE_HOLIDAY = 'Holiday';
     protected $fillable = [
         'code',
         'type',

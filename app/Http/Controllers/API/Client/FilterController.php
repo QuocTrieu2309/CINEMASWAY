@@ -41,12 +41,12 @@ class FilterController extends Controller
                               ->select('cinema_screen_id', 'show_time'); // Chỉ lấy các trường cần thiết
                     }])
                     ->get();
-                    
+
                 // Lưu thông tin vào mảng kết quả
                 $cinemaNames[] = [
                     'city'=> $city['city'],
                     'detail'=>$cinemas->map(function ($cinema) {
-                        return [                           
+                        return [
                             'cinema' => $cinema->name,
                             'showtimes' => $cinema->cinemaScreens->flatMap(function ($screen) {
                                 return $screen->showtimes->map(function ($showtime) {
@@ -57,7 +57,7 @@ class FilterController extends Controller
                     })
                 ];
             }
-            
+
             return ApiResponse(true, $cinemaNames, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
@@ -108,8 +108,10 @@ class FilterController extends Controller
                     'screen_name' => $showtime->cinemaScreen->screen->name,
                     'subtitle' => $showtime->subtitle,
                     'movie_name' => $showtime->movie->title,
+                    'movie_duration' => $showtime->movie->duration,
                     'show_date' => $showtime->show_date,
                     'show_time' => $showtime->show_time,
+                    'id_showtime' => $showtime->id,
                     'status' => $showtime->status,
                 ];
             });
@@ -170,6 +172,8 @@ class FilterController extends Controller
                     'movie_duration' => $movie->movie->duration,
                     'show_date' => $movie->show_date,
                     'show_time' => $movie->show_time,
+                    'id_showtime' => $movie->id,
+
                 ];
             });
             $result = [
@@ -219,6 +223,8 @@ class FilterController extends Controller
                     'movie_duration' => $movie->movie->duration,
                     'show_date' => $movie->show_date,
                     'show_time' => $movie->show_time,
+                    'id_showtime' => $movie->id,
+
                 ];
             });
             $result = [
@@ -267,6 +273,7 @@ class FilterController extends Controller
                     'movie_duration' => $movie->movie->duration,
                     'show_date' => $movie->show_date,
                     'show_time' => $movie->show_time,
+                    'id_showtime' => $movie->id,
                 ];
             });
             $result = [
@@ -315,6 +322,8 @@ class FilterController extends Controller
                     'movie_duration' => $movie->movie->duration,
                     'show_date' => $movie->show_date,
                     'show_time' => $movie->show_time,
+                    'id_showtime' => $movie->id,
+
                 ];
             });
             $result = [

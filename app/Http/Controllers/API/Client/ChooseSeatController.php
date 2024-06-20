@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ChooseSeatController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum');
+    // }
 
     /**
      * Hiển thị danh sách ghế theo seatmap dựa vào showtime_id
@@ -42,7 +42,8 @@ class ChooseSeatController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         try {
-            $user_id = auth('sanctum')->user()->id;
+            // $user_id = auth('sanctum')->user()->id;
+            $user_id = 1;
             $showtime_id = $request->showtime_id;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
@@ -73,6 +74,7 @@ class ChooseSeatController extends Controller
                             'id' => $item['id'],
                             'seat_number' => $item['seat_number'],
                             'type' => $item->seatType->name,
+                            'price' => $item->seatType->price,
                             'status' => $status,
                         ];
                     }
@@ -92,6 +94,7 @@ class ChooseSeatController extends Controller
                                     'id' => null,
                                     'seat_number' => 0,
                                     'type' => null,
+                                    'price' => 0,
                                     'status' => null,
                                 ]
                             ];
@@ -102,6 +105,12 @@ class ChooseSeatController extends Controller
             }
 
             $data = [
+                'movie_title'   => $showtime->movie->title,
+                'cinema_name'   => $showtime->cinemaScreen->cinema->name,
+                'city'   => $showtime->cinemaScreen->cinema->city,
+                'showtime'   => $showtime->show_time,
+                'show_date'   => $showtime->show_date,
+                'screen'   => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
 

@@ -16,10 +16,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ChooseSeatController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:sanctum');
-    // }
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
 
     /**
      * Hiển thị danh sách ghế theo seatmap dựa vào showtime_id
@@ -42,8 +42,7 @@ class ChooseSeatController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         try {
-            // $user_id = auth('sanctum')->user()->id;
-            $user_id = 1;
+            $user_id = auth('sanctum')->user()->id;
             $showtime_id = $request->showtime_id;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);

@@ -73,6 +73,7 @@ class ChooseSeatController extends Controller
                             'id' => $item['id'],
                             'seat_number' => $item['seat_number'],
                             'type' => $item->seatType->name,
+                            'price' => $item->seatType->price,
                             'status' => $status,
                         ];
                     }
@@ -92,6 +93,7 @@ class ChooseSeatController extends Controller
                                     'id' => null,
                                     'seat_number' => 0,
                                     'type' => null,
+                                    'price' => 0,
                                     'status' => null,
                                 ]
                             ];
@@ -102,6 +104,12 @@ class ChooseSeatController extends Controller
             }
 
             $data = [
+                'movie_title'   => $showtime->movie->title,
+                'cinema_name'   => $showtime->cinemaScreen->cinema->name,
+                'city'   => $showtime->cinemaScreen->cinema->city,
+                'showtime'   => $showtime->show_time,
+                'show_date'   => $showtime->show_date,
+                'screen'   => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
 

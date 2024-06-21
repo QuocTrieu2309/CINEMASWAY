@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Route;
 Route::post('booking',[ClientController::class, 'updateTickets']);
 // Get city information
 Route::get('/filter/movie/{id}',[FilterController::class, 'getCity']);
-// tìm kiếm theo năm :tháng:ngày, thành phố , mànhinh:phụđề (show time)
+// tìm kiếm theo năm :tháng:ngày, thành phố , tên (show time)
 Route::get('/filter/movie/{id}/showtime',[FilterController::class, 'filter']);
 // tìm kiếm theo thành phố , năm:tháng:ngày , tên rạp  filter(movie)
 Route::get('/filter/movie',[FilterController::class, 'filterMovie']);

@@ -68,33 +68,16 @@ class FilterController extends Controller
     public function filter(Request $request, $id)
     {
         try {
+            $movieExists = Showtime::where('movie_id', $id)->exists();
+        if (!$movieExists) {
+            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có phim nào ');
+        }
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $query = Showtime::query();
             $query->where('deleted', 0);
-            // xét dèault
-            if ($request->has('date')) {
-                $query->where('show_date', $request->date);
-            }
-            if ($request->has('city')) {
-                $city = $request->city;
-                $query->whereHas('cinemaScreen.cinema', function ($q) use ($city) {
-                    $q->where('city', $city);
-                });
-            }
-            if ($request->has('experiences')) {
-
-                $experiences = explode(':', $request->experiences);
-                if (count($experiences) === 2) {
-                    $name = $experiences[0];
-                    $subtitle = $experiences[1];
-                    $query->whereHas('cinemaScreen.screen', function ($q) use ($name) {
-                        $q->where('name', $name);
-                    });
-                    $query->where('subtitle', $subtitle);
-                }
-            }
+            $query->where('movie_id', $id);
             $data = $query->with('cinemaScreen.cinema', 'movie', 'cinemaScreen.screen')
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);

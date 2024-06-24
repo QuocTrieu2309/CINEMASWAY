@@ -58,13 +58,15 @@ class ChooseSeatController extends Controller
             }
             $layoutArr = explode('|', $seatMap->layout);
             $seatAll = SeatShowtime::with('seat.seatType', 'seat.seatShowtime')
-                ->where('showtime_id', $showtime_id)
-                ->get()
-                ->pluck('seat')
-                ->filter(function ($seat) {
-                    return $seat->deleted == 0;
-                })
-                ->sortBy('seat_number');
+            ->where('showtime_id', $showtime_id)
+            ->get()
+            ->pluck('seat')
+            ->filter(function ($seat) {
+                return $seat->deleted == 0;
+            })
+            ->sort(function ($a, $b) {
+                return $this->sortSeatNumbers($a->seat_number, $b->seat_number);
+            });
             $detail = [];
             $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N'];
             foreach ($seatAll as $item) {
@@ -140,6 +142,24 @@ class ChooseSeatController extends Controller
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
+    }
+
+    /**
+     * Sắp xếp dữ liệu seatAll
+     *
+     * @param mixed $seatNumberA
+     * @param mixed $seatNumberB
+     * @return int
+     */
+    private function sortSeatNumbers($seatNumberA, $seatNumberB)
+    {
+        preg_match('/([A-Za-z]+)(\d+)/', $seatNumberA, $matchesA);
+        preg_match('/([A-Za-z]+)(\d+)/', $seatNumberB, $matchesB);
+        $letterComparison = strcmp($matchesA[1], $matchesB[1]);
+        if ($letterComparison !== 0) {
+            return $letterComparison;
+        }
+        return (int)$matchesA[2] - (int)$matchesB[2];
     }
 
     /**

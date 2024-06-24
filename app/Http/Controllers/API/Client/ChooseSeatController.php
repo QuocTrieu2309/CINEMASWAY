@@ -28,11 +28,12 @@ class ChooseSeatController extends Controller
      * @return mixed
      * @throws BindingResolutionException
      *
-     * POST api/show-seat-map
+     * GET api/show-seat-map/{showtime_id}
      */
-    public function showSeatMap(Request $request)
+    public function showSeatMap($showtime_id)
     {
-        $validator = Validator::make($request->all(), [
+        $data = ['showtime_id' => $showtime_id];
+        $validator = Validator::make($data, [
             'showtime_id' => 'required|exists:showtimes,id',
         ], [
             'showtime_id.required' => 'Vui lòng cung cấp ID của showtime.',
@@ -43,7 +44,6 @@ class ChooseSeatController extends Controller
         }
         try {
             $user_id = auth('sanctum')->user()->id;
-            $showtime_id = $request->showtime_id;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
@@ -57,19 +57,30 @@ class ChooseSeatController extends Controller
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Seat Map');
             }
             $layoutArr = explode('|', $seatMap->layout);
-            $seatAll = Seat::with('seatType', 'seatShowtime')
-                ->where('cinema_screen_id', $seatMap->cinema_screen_id)
-                ->where('status', Seat::STATUS_OCCUPIED)
-                ->where('deleted', 0)
-                ->get();
+            $seatAll = SeatShowtime::with('seat.seatType', 'seat.seatShowtime')
+                ->where('showtime_id', $showtime_id)
+                ->get()
+                ->pluck('seat')
+                ->filter(function ($seat) {
+                    return $seat->deleted == 0;
+                })
+                ->sortBy('seat_number');
             $detail = [];
-            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
+            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N'];
             foreach ($seatAll as $item) {
-                $count = 0;
-                foreach ($characterArr as $character) {
-                    if ($item['seat_number'][0] == $character) {
+                $rowIndex = array_search($item['seat_number'][0], $characterArr);
+                if ($rowIndex !== false) {
+                    if ($item->status != Seat::STATUS_OCCUPIED) {
+                        $detail[$rowIndex][] = [
+                            'id' => $item['id'],
+                            'seat_number' => $item['seat_number'],
+                            'type' => $item->seatType->name,
+                            'price' => $item->seatType->price,
+                            'status' => Seat::STATUS_UNOCCUPIED,
+                        ];
+                    } else {
                         $status = $item->seatShowtime ? $this->getSeatShowtimeStatus($item->seatShowtime, $user_id) : SeatShowtime::STATUS_AVAILABLE;
-                        $detail[$count][] = [
+                        $detail[$rowIndex][] = [
                             'id' => $item['id'],
                             'seat_number' => $item['seat_number'],
                             'type' => $item->seatType->name,
@@ -77,24 +88,36 @@ class ChooseSeatController extends Controller
                             'status' => $status,
                         ];
                     }
-                    $count++;
                 }
             }
             for ($i = 0; $i < count($layoutArr); $i++) {
-                $count = $this->countUniqueCharacters($layoutArr[$i]);
+                $count = countUniqueCharacters($layoutArr[$i]);
                 if ($count == 0) {
-                    $noSeat[] = [];
-                    array_splice($detail, $i, 0, $noSeat);
+                    $noSeat = [];
+                    array_splice($detail, $i, 0, [$noSeat]);
                 } else {
+                    if ($i >= 1) {
+                        $seatChecks = Seat::where('seat_number', 'LIKE',  $characterArr[$i - 1] . '%')
+                            ->where('cinema_screen_id', $seatMap->cinema_screen_id)
+                            ->first();
+                        if (!$seatChecks) {
+                            $layoutRow = str_replace('X', '', $layoutArr[$i]);
+                            for ($z = 0; $z < Str::length($layoutRow); $z++) {
+                                $detail[$i][] = [
+                                    'id' => '-',
+                                    'seat_number' => '-',
+                                    'type' => '',
+                                    'price' => '-',
+                                    'status' => '',
+                                ];
+                            }
+                        }
+                    }
                     for ($j = 0; $j < Str::length($layoutArr[$i]); $j++) {
                         if ($layoutArr[$i][$j] == 'X') {
                             $noSeatNumber = [
-                                0 => [
-                                    'id' => null,
-                                    'seat_number' => 0,
-                                    'type' => null,
-                                    'price' => 0,
-                                    'status' => null,
+                                [
+                                    'type' => 'X',
                                 ]
                             ];
                             array_splice($detail[$i], $j, 0, $noSeatNumber);
@@ -102,14 +125,14 @@ class ChooseSeatController extends Controller
                     }
                 }
             }
-
+            ksort($detail);
             $data = [
-                'movie_title'   => $showtime->movie->title,
-                'cinema_name'   => $showtime->cinemaScreen->cinema->name,
-                'city'   => $showtime->cinemaScreen->cinema->city,
-                'showtime'   => $showtime->show_time,
-                'show_date'   => $showtime->show_date,
-                'screen'   => $showtime->cinemaScreen->screen->name,
+                'movie_title' => $showtime->movie->title,
+                'cinema_name' => $showtime->cinemaScreen->cinema->name,
+                'city' => $showtime->cinemaScreen->cinema->city,
+                'showtime' => $showtime->show_time,
+                'show_date' => $showtime->show_date,
+                'screen' => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
 
@@ -117,11 +140,6 @@ class ChooseSeatController extends Controller
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
-    }
-
-    private function countUniqueCharacters($str)
-    {
-        return count(array_unique(str_split($str)));
     }
 
     /**

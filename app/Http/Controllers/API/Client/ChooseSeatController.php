@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\API\Client;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\API\Service\ServiceResource;
 use App\Models\Seat;
 use App\Models\SeatMap;
 use App\Models\SeatShowtime;
+use App\Models\Service;
 use App\Models\Showtime;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
@@ -279,4 +281,17 @@ class ChooseSeatController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
+
+    //get All service
+    public function getService(){
+        try {
+            $services = Service::where('deleted', 0)->get();
+            $data = ServiceResource::collection($services);
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }    
+
 }

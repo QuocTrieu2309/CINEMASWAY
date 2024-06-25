@@ -27,3 +27,5 @@ Route::get('/show-seat-map/{showtime_id}', [ChooseSeatController::class, 'showSe
 Route::post('/status', [ChooseSeatController::class, 'updateStatusSeat']);
 //Post hủy ghế
 Route::post('/cancel', [ChooseSeatController::class, 'cancel']);
+//Get hiển thị danh sách service
+Route::get('/service', [ChooseSeatController::class, 'getService']);

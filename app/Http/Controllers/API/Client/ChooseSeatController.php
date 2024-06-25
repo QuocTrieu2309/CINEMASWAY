@@ -28,11 +28,12 @@ class ChooseSeatController extends Controller
      * @return mixed
      * @throws BindingResolutionException
      *
-     * POST api/show-seat-map
+     * GET api/show-seat-map/{showtime_id}
      */
-    public function showSeatMap(Request $request)
+    public function showSeatMap($showtime_id)
     {
-        $validator = Validator::make($request->all(), [
+        $data = ['showtime_id' => $showtime_id];
+        $validator = Validator::make($data, [
             'showtime_id' => 'required|exists:showtimes,id',
         ], [
             'showtime_id.required' => 'Vui lòng cung cấp ID của showtime.',
@@ -43,7 +44,6 @@ class ChooseSeatController extends Controller
         }
         try {
             $user_id = auth('sanctum')->user()->id;
-            $showtime_id = $request->showtime_id;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
@@ -57,44 +57,73 @@ class ChooseSeatController extends Controller
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Seat Map');
             }
             $layoutArr = explode('|', $seatMap->layout);
-            $seatAll = Seat::with('seatType', 'seatShowtime')
+            $seats = Seat::with('seatType')
                 ->where('cinema_screen_id', $seatMap->cinema_screen_id)
-                ->where('status', Seat::STATUS_OCCUPIED)
                 ->where('deleted', 0)
-                ->get();
+                ->get()
+                ->sortBy(function ($seat) {
+                    return $this->sortSeatNumbers($seat->seat_number, $seat->seat_number);
+                });
+
+            $seatShowtimes = SeatShowtime::where('showtime_id', $showtime_id)->get()->keyBy('seat_id');
+
             $detail = [];
-            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
-            foreach ($seatAll as $item) {
-                $count = 0;
-                foreach ($characterArr as $character) {
-                    if ($item['seat_number'][0] == $character) {
-                        $status = $item->seatShowtime ? $this->getSeatShowtimeStatus($item->seatShowtime, $user_id) : SeatShowtime::STATUS_AVAILABLE;
-                        $detail[$count][] = [
-                            'id' => $item['id'],
-                            'seat_number' => $item['seat_number'],
-                            'type' => $item->seatType->name,
-                            'price' => $item->seatType->price,
+            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'K', 'L', 'M', 'N'];
+
+            foreach ($seats as $seat) {
+                $rowIndex = array_search($seat->seat_number[0], $characterArr);
+                if ($rowIndex !== false) {
+                    $seatShowtime = $seatShowtimes->get($seat->id);
+                    if ($seatShowtime) {
+                        $status = $this->getSeatShowtimeStatus($seatShowtime, $user_id);
+                    } else {
+                        $status = Seat::STATUS_UNOCCUPIED;
+                    }
+                    if ($status == Seat::STATUS_UNOCCUPIED) {
+                        $detail[$rowIndex][] = [
+                            'id' => $seat->id,
+                            'seat_number' => $seat->seat_number,
+                            'status' => $status,
+                        ];
+                    } else {
+                        $detail[$rowIndex][] = [
+                            'id' => $seat->id,
+                            'seat_number' => $seat->seat_number,
+                            'type' => $seat->seatType->name,
+                            'price' => $seat->seatType->price,
                             'status' => $status,
                         ];
                     }
-                    $count++;
                 }
             }
             for ($i = 0; $i < count($layoutArr); $i++) {
-                $count = $this->countUniqueCharacters($layoutArr[$i]);
+                $count = countUniqueCharacters($layoutArr[$i]);
                 if ($count == 0) {
-                    $noSeat[] = [];
-                    array_splice($detail, $i, 0, $noSeat);
+                    $noSeat = [];
+                    array_splice($detail, $i, 0, [$noSeat]);
                 } else {
+                    if ($i >= 1) {
+                        $seatChecks = Seat::where('seat_number', 'LIKE',  $characterArr[$i - 1] . '%')
+                            ->where('cinema_screen_id', $seatMap->cinema_screen_id)
+                            ->first();
+                        if (!$seatChecks) {
+                            $layoutRow = str_replace('X', '', $layoutArr[$i]);
+                            for ($z = 0; $z < Str::length($layoutRow); $z++) {
+                                $detail[$i][] = [
+                                    'id' => '-',
+                                    'seat_number' => '-',
+                                    'type' => '',
+                                    'price' => '-',
+                                    'status' => '',
+                                ];
+                            }
+                        }
+                    }
                     for ($j = 0; $j < Str::length($layoutArr[$i]); $j++) {
                         if ($layoutArr[$i][$j] == 'X') {
                             $noSeatNumber = [
-                                0 => [
-                                    'id' => null,
-                                    'seat_number' => 0,
-                                    'type' => null,
-                                    'price' => 0,
-                                    'status' => null,
+                                [
+                                    'type' => 'X',
                                 ]
                             ];
                             array_splice($detail[$i], $j, 0, $noSeatNumber);
@@ -102,14 +131,14 @@ class ChooseSeatController extends Controller
                     }
                 }
             }
-
+            ksort($detail);
             $data = [
-                'movie_title'   => $showtime->movie->title,
-                'cinema_name'   => $showtime->cinemaScreen->cinema->name,
-                'city'   => $showtime->cinemaScreen->cinema->city,
-                'showtime'   => $showtime->show_time,
-                'show_date'   => $showtime->show_date,
-                'screen'   => $showtime->cinemaScreen->screen->name,
+                'movie_title' => $showtime->movie->title,
+                'cinema_name' => $showtime->cinemaScreen->cinema->name,
+                'city' => $showtime->cinemaScreen->cinema->city,
+                'showtime' => $showtime->show_time,
+                'show_date' => $showtime->show_date,
+                'screen' => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
 
@@ -119,9 +148,22 @@ class ChooseSeatController extends Controller
         }
     }
 
-    private function countUniqueCharacters($str)
+    /**
+     * Sắp xếp dữ liệu seatAll
+     *
+     * @param mixed $seatNumberA
+     * @param mixed $seatNumberB
+     * @return int
+     */
+    private function sortSeatNumbers($seatNumberA, $seatNumberB)
     {
-        return count(array_unique(str_split($str)));
+        preg_match('/([A-Za-z]+)(\d+)/', $seatNumberA, $matchesA);
+        preg_match('/([A-Za-z]+)(\d+)/', $seatNumberB, $matchesB);
+        $letterComparison = strcmp($matchesA[1], $matchesB[1]);
+        if ($letterComparison !== 0) {
+            return $letterComparison;
+        }
+        return (int)$matchesA[2] - (int)$matchesB[2];
     }
 
     /**
@@ -150,27 +192,33 @@ class ChooseSeatController extends Controller
      * @throws BindingResolutionException
      *
      * POST api/status
+     * truyền vào params id : seat_id, showtime_id
      */
     public function updateStatusSeat(Request $request)
     {
-        $user_id = auth('sanctum')->user()->id;
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:seats,id',
+            'showtime_id' => 'required|exists:seat_showtimes,id',
         ], [
             'id.required' => 'Vui lòng cung cấp ID của ghế.',
             'id.exists' => 'ID của ghế không hợp lệ.',
+            'showtime_id.required' => 'Vui lòng cung cấp ID của suất chiếu.',
+            'showtime_id.exists' => 'ID của suất chiếu không hợp lệ.',
         ]);
         if ($validator->fails()) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         DB::beginTransaction();
         try {
-            $seatShowtime = Seat::findOrFail($request->id)->seatShowtime;
+            $user_id = auth('sanctum')->user()->id;
+            $seatShowtime = SeatShowtime::where('seat_id', $request->id)
+            ->where('showtime_id', $request->showtime_id)
+            ->first();
             if (!$seatShowtime) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Seat not found');
             }
             if (isset($seatShowtime->user_id)) {
-                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Something Fails');
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Seat is already reserved by another user.');
             }
             $seatShowtime->update([
                 'user_id' => $user_id
@@ -192,23 +240,33 @@ class ChooseSeatController extends Controller
      * @throws BindingResolutionException
      *
      * POST api/cancel
+     * truyền vào params id : seat_id, showtime_id
      */
     public function cancel(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'id' => 'required|exists:seats,id',
+            'showtime_id' => 'required|exists:seat_showtimes,id',
         ], [
             'id.required' => 'Vui lòng cung cấp ID của ghế.',
             'id.exists' => 'ID của ghế không hợp lệ.',
+            'showtime_id.required' => 'Vui lòng cung cấp ID của suất chiếu.',
+            'showtime_id.exists' => 'ID của suất chiếu không hợp lệ.',
         ]);
         if ($validator->fails()) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         DB::beginTransaction();
         try {
-            $seatShowtime = Seat::findOrFail($request->id)->seatShowtime;
+            $user_id = auth('sanctum')->user()->id;
+            $seatShowtime = SeatShowtime::where('seat_id', $request->id)
+            ->where('showtime_id', $request->showtime_id)
+            ->first();
             if (!$seatShowtime) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Seat not found');
+            }
+            if ($seatShowtime->user_id !== $user_id) {
+                return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Unauthorized action.');
             }
             $seatShowtime->update([
                 'user_id' => null

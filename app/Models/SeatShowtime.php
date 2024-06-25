@@ -25,9 +25,9 @@ class SeatShowtime extends Model
         'created_at',
         'updated_at',
     ];
-    public function seats()
+    public function seat()
     {
-        return $this->hasMany(Seat::class);
+        return $this->belongsTo(Seat::class);
     }
 
     public function showtime()

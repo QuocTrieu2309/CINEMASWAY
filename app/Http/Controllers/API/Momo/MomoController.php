@@ -33,6 +33,9 @@ class MomoController extends Controller
         try {
             DB::beginTransaction();
             $user = auth('sanctum')->user();
+            if (!$user) {
+                return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Vui long đăng nhập');
+            }
             $barcode = new DNS1D();
             $barcodeString = $barcode->getBarcodePNG(uniqid(), 'C128', 3, 33);
             $tempBarcodePath = tempnam(sys_get_temp_dir(), 'barcode') . '.png';
@@ -107,7 +110,7 @@ class MomoController extends Controller
             $orderGroupId = '';
             $autoCapture = true;
             $lang = 'vi';
-            $amount = intval($request->subtotal);
+            $amount = intval($booking->subtotal);
             $orderId = $partnerCode . time();
             $requestId = $orderId;
             $rawSignature = sprintf(
@@ -212,19 +215,23 @@ class MomoController extends Controller
                 $booking->status = 'Payment successful';
                 $booking->save();
                 $seats = Ticket::where('booking_id', $bookingId)->pluck('seat_id')->toArray();
+
                 foreach ($seats as $seatId) {
-                    SeatShowtime::create([
-                        'user_id' => $booking->user_id,
-                        'seat_id' => $seatId,
-                        'showtime_id' => $booking->showtime_id,
-                        'status' => SeatShowtime::STATUS_RESERVED,
-                    ]);
+                    $seatShowtime = SeatShowtime::where('seat_id', $seatId)
+                        ->where('showtime_id', $booking->showtime_id)
+                        ->first();
+                    if ($seatShowtime) {
+                        $seatShowtime->user_id = $booking->user_id;
+                        $seatShowtime->status = SeatShowtime::STATUS_RESERVED;
+                        $seatShowtime->save();
+                    }
                 }
+
                 $transaction = new Transaction();
                 $transaction->booking_id = $bookingId;
                 $transaction->subtotal = $booking->subtotal;
-                $transaction->payment_method = 'Momo paid';
-                $transaction->status = 'Payment successful';
+                $transaction->payment_method = 'Momo';
+                $transaction->status = 'Đã thanh toán';
                 $transaction->save();
             } elseif ($responseData['resultCode'] == 1006) {
                 DB::beginTransaction();

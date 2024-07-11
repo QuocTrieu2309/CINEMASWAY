@@ -9,6 +9,7 @@ use App\Models\Cinema;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class CinemaController extends Controller
 {
@@ -114,8 +115,15 @@ class CinemaController extends Controller
             $this->authorize('delete', Cinema::class);
             $cinema = Cinema::where('id', $id)->where('deleted', 0)->first();
             empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $cinema->deleted = 1;
-            $cinema->save();
+            // $cinema->deleted = 1;
+            // $cinema->save();
+            $hasRelatedRecords = $cinema->cinemaScreens()->exists();
+            if ($hasRelatedRecords) {
+                $cinema->deleted = 1;
+                $cinema->save();
+            } else {
+                $cinema->delete();
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

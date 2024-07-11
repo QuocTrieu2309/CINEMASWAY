@@ -9,6 +9,7 @@ use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class PermissionController extends Controller
 {
@@ -102,8 +103,15 @@ class PermissionController extends Controller
             $this->authorize('delete', Permission::class);
             $permission = Permission::where('id', $id)->where('deleted', 0)->first();
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $permission->deleted = 1;
-            $permission->save();
+            // $permission->deleted = 1;
+            // $permission->save();
+            $hasRelatedRecords =$permission->userPermissions()->exists();
+            if ($hasRelatedRecords) {
+                $permission->deleted = 1;
+                $permission->save();
+            } else {
+                $permission->delete();
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

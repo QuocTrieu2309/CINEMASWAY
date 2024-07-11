@@ -197,8 +197,15 @@ class SeatMapController extends Controller
             $this->authorize('delete', SeatMap::class);
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
             empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $seatMap->deleted = 1;
-            $seatMap->save();
+            // $seatMap->deleted = 1;
+            // $seatMap->save();
+            $hasRelatedRecords =$seatMap->cinemaScreen()->exists();
+            if ($hasRelatedRecords) {
+                $seatMap->deleted = 1;
+                $seatMap->save();
+            } else {
+                $seatMap->delete();
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

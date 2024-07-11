@@ -108,8 +108,18 @@ class CinemaScreenController extends Controller
             $this->authorize('delete', CinemaScreen::class);
             $CinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
             empty($CinemaScreen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $CinemaScreen->deleted = 1;
-            $CinemaScreen->save();
+            // $CinemaScreen->deleted = 1;
+            // $CinemaScreen->save();
+            $hasRelatedRecords = $CinemaScreen->seatMaps()->exists() ||
+                $CinemaScreen->seats()->exists() ||
+                $CinemaScreen->showtimes()->exists();
+
+            if ($hasRelatedRecords) {
+                $CinemaScreen->deleted = 1;
+                $CinemaScreen->save();
+            } else {
+                $CinemaScreen->delete();
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

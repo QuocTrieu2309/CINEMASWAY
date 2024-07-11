@@ -109,8 +109,15 @@ class ScreenController extends Controller
             $this->authorize('delete', Screen::class);
             $Screen = Screen::where('id', $id)->where('deleted', 0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $Screen->deleted = 1;
-            $Screen->save();
+            // $Screen->deleted = 1;
+            // $Screen->save();
+            $hasRelatedRecords =  $Screen->cinemaScreens()->exists();
+            if ($hasRelatedRecords) {
+                $Screen->deleted = 1;
+                $Screen->save();
+            } else {
+                $Screen->delete();
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

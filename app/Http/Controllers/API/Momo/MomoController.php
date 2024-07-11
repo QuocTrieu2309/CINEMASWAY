@@ -239,8 +239,13 @@ class MomoController extends Controller
                     Ticket::where('booking_id', $bookingId)->delete();
                     $bookingServices = BookingService::where('booking_id', $bookingId)->get();
                     foreach ($bookingServices as $bookingService) {
-                        $bookingService->delete();
+                    $serviceModel = Service::find($bookingService->service_id);
+                    if ($serviceModel) {
+                        $serviceModel->increment('quantity', $bookingService->quantity);
                     }
+                    $bookingService->delete();
+                    }
+                    BookingService::where('booking_id', $bookingId)->delete();
                     Booking::where('id', $bookingId)->delete();
                     DB::commit();
                 } catch (\Exception $e) {

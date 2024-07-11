@@ -101,7 +101,7 @@ class MomoController extends Controller
             $accessKey = 'F8BBA842ECF85';
             $secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
             $partnerCode = 'MOMO';
-            $redirectUrl = 'http://localhost:5173/?booking_id=' . $booking->id;
+            $redirectUrl = $request->url. '/MOMO?booking_id=' . $booking->id;
             $ipnUrl = route('momo.callback');
             $orderInfo = 'pay with MoMo';
             $requestType = 'payWithATM';

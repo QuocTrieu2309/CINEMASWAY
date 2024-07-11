@@ -101,10 +101,9 @@ class MovieController extends Controller
     {
         try {
             $this->authorize('delete', Movie::class);
+            DB::beginTransaction();
             $movie = Movie::where('id', $id)->where('deleted', 0)->first();
             empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $movie->deleted = 1;
-            // $movie->save();
             $hasRelatedRecords = $movie->showtimes()->exists();
             if ($hasRelatedRecords) {
                 $movie->deleted = 1;
@@ -112,8 +111,9 @@ class MovieController extends Controller
             } else {
                 $movie->delete();
             }
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            DB::commit();            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

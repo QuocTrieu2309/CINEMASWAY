@@ -11,6 +11,7 @@ use Illuminate\Http\Response;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Config;
 use App\Models\Seat;
+use Illuminate\Support\Facades\DB;
 
 class SeatMapController extends Controller
 {
@@ -195,10 +196,9 @@ class SeatMapController extends Controller
     {
         try {
             $this->authorize('delete', SeatMap::class);
+            DB::beginTransaction();
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
             empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $seatMap->deleted = 1;
-            // $seatMap->save();
             $hasRelatedRecords =$seatMap->cinemaScreen()->exists();
             if ($hasRelatedRecords) {
                 $seatMap->deleted = 1;
@@ -206,8 +206,9 @@ class SeatMapController extends Controller
             } else {
                 $seatMap->delete();
             }
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            DB::commit();            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

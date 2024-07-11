@@ -11,6 +11,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -93,10 +94,9 @@ class BookingController extends Controller
     {
         try {
             $this->authorize('delete', Booking::class);
+            DB::beginTransaction();
             $booking = Booking::where('id', $id)->where('deleted', 0)->first();
             empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $booking->deleted = 1;
-            // $booking->save();
             $hasRelatedRecords = $booking->transactions()->exists() ||
             $booking->bookingServices()->exists() ||
             $booking->tickets()->exists();
@@ -106,9 +106,10 @@ class BookingController extends Controller
             } else {
                 $booking->delete();
             }
-
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

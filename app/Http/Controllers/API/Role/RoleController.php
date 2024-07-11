@@ -101,11 +101,9 @@ class RoleController extends Controller
     {
         try {
             $this->authorize('delete', Role::class);
+            DB::beginTransaction();
             $role = Role::where('id', $id)->where('deleted', 0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $role->deleted = 1;
-            // $role->save();
-              // $permission->save();
               $hasRelatedRecords =  $role->users()->exists();
               if ($hasRelatedRecords) {
                   $role->deleted = 1;
@@ -113,8 +111,10 @@ class RoleController extends Controller
               } else {
                   $role->delete();
               }
+              DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

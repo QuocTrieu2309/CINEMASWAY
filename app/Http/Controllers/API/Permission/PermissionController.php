@@ -101,10 +101,9 @@ class PermissionController extends Controller
     {
         try {
             $this->authorize('delete', Permission::class);
+            DB::beginTransaction();
             $permission = Permission::where('id', $id)->where('deleted', 0)->first();
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $permission->deleted = 1;
-            // $permission->save();
             $hasRelatedRecords =$permission->userPermissions()->exists();
             if ($hasRelatedRecords) {
                 $permission->deleted = 1;
@@ -112,8 +111,9 @@ class PermissionController extends Controller
             } else {
                 $permission->delete();
             }
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            DB::commit();            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

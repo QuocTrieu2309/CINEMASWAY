@@ -109,14 +109,11 @@ class CinemaController extends Controller
     //DELETE api/dashboard/cinema/delete/{id}
     public function destroy(string $id)
     {
-        //
         try {
-
             $this->authorize('delete', Cinema::class);
+            DB::beginTransaction();
             $cinema = Cinema::where('id', $id)->where('deleted', 0)->first();
             empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $cinema->deleted = 1;
-            // $cinema->save();
             $hasRelatedRecords = $cinema->cinemaScreens()->exists();
             if ($hasRelatedRecords) {
                 $cinema->deleted = 1;
@@ -124,8 +121,10 @@ class CinemaController extends Controller
             } else {
                 $cinema->delete();
             }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollback();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

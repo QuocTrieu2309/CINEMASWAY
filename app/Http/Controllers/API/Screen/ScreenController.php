@@ -9,6 +9,7 @@ use App\Models\Screen;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class ScreenController extends Controller
 
@@ -107,10 +108,9 @@ class ScreenController extends Controller
     {
         try {
             $this->authorize('delete', Screen::class);
+            DB::beginTransaction();
             $Screen = Screen::where('id', $id)->where('deleted', 0)->first();
             empty($Screen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            // $Screen->deleted = 1;
-            // $Screen->save();
             $hasRelatedRecords =  $Screen->cinemaScreens()->exists();
             if ($hasRelatedRecords) {
                 $Screen->deleted = 1;
@@ -118,8 +118,10 @@ class ScreenController extends Controller
             } else {
                 $Screen->delete();
             }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

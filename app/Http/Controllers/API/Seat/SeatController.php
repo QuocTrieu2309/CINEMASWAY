@@ -218,7 +218,7 @@ class SeatController extends Controller
             $hasRelatedRecords = $seat->seatShowtime()->exists() ||
                 $seat->cinemaScreen()->exists() ||
                 $seat->seatType()->exists() ||
-                $seat->ticket->exists();
+                $seat->ticket()->exists();
             if ($hasRelatedRecords) {
                 $seat->deleted = 1;
                 $seat->save();

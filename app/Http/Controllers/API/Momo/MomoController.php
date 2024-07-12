@@ -63,13 +63,13 @@ class MomoController extends Controller
             }
 
             foreach ($request->seats as $seatId) {
-                $isReserved = SeatShowtime::where('seat_id', $seatId)
-                    ->where('status', SeatShowtime::STATUS_RESERVED)
-                    ->exists();
-                if ($isReserved) {
-                    DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'ghế đã được đặt vui lòng chọn ghế khác');
-                }
+                // $isReserved = SeatShowtime::where('seat_id', $seatId)
+                //     ->where('status', SeatShowtime::STATUS_RESERVED)
+                //     ->exists();
+                // if ($isReserved) {
+                //     DB::rollBack();
+                //     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'ghế đã được đặt vui lòng chọn ghế khác');
+                // }
                 Ticket::create([
                     'booking_id' => $booking->id,
                     'seat_id' => $seatId,

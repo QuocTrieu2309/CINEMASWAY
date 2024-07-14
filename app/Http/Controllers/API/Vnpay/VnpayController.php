@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\BookingService;
 use App\Models\SeatShowtime;
+use App\Models\Service;
 use App\Models\Showtime;
 use App\Models\Ticket;
 use App\Models\Transaction;
@@ -13,6 +14,7 @@ use Cloudinary\Api\Metadata\Validators\StringLength;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Milon\Barcode\DNS1D;
 
@@ -28,6 +30,10 @@ class VnpayController extends Controller
     {
         DB::beginTransaction();
         try {
+            $user = auth('sanctum')->user();
+            if (!$user) {
+                return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Vui long đăng nhập');
+            }
             $barcode = new DNS1D();
             $barcodeString = $barcode->getBarcodePNG(uniqid(), 'C128', 3, 33);
             $tempBarcodePath = tempnam(sys_get_temp_dir(), 'barcode') . '.png';
@@ -36,10 +42,13 @@ class VnpayController extends Controller
                 'folder' => 'Booking'
             ])->getSecurePath();
             unlink($tempBarcodePath);
+            $totalSubtotal = 0;
+            // Tính tổng tiền vé
+            $totalSubtotal += $request->subtotal;
             $booking = Booking::create([
-                'user_id' => $request->user_id,
-                'showtime_id' => $request->Showtimes_id,
-                'code' => $uploadedFileUrl, //rand(1, 9999)
+                'user_id' => $user->id,
+                'showtime_id' => $request->showtime_id,
+                'code' => $uploadedFileUrl,
                 'quantity' => count($request->seats),
                 'subtotal' => $request->subtotal,
                 'status' => Booking::STATUS_UNPAID,
@@ -49,42 +58,43 @@ class VnpayController extends Controller
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             foreach ($request->seats as $seatId) {
-                $cridential = Ticket::query()->create([
-                    'booking_id' => $booking->id,
-                    'seat_id' => $seatId
-                ]);
-                $seatShotime = SeatShowtime::where('seat_id', $seatId)->update([
-                    'status' => SeatShowtime::STATUS_HELD
-                ]);
-                if (!$cridential || !$seatShotime) {
+                $isReserved = SeatShowtime::where('seat_id', $seatId)
+                    ->where('status', SeatShowtime::STATUS_RESERVED)
+                    ->exists();
+                if ($isReserved) {
                     DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'ghế đã được đặt vui lòng chọn ghế khác');
                 }
+                Ticket::create([
+                    'booking_id' => $booking->id,
+                    'seat_id' => $seatId,
+                ]);
             }
             foreach ($request->services as $service) {
-                $bookingService = BookingService::query()->create([
+                $serviceModel = Service::findOrFail($service['service_id']);
+
+                if ($serviceModel->quantity < $service['quantity']) {
+                    DB::rollBack();
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Dịch vụ ' . $serviceModel->name . ' không đủ số lượng để đáp ứng. Vui lòng giảm số lượng dịch vụ!');
+                }
+                $totalSubtotal += $service['subtotal'];
+                $bookingService = BookingService::create([
                     'booking_id' => $booking->id,
                     'service_id' => $service['service_id'],
                     'quantity' => $service['quantity'],
-                    'subtotal' => $service['subtotal']
+                    'subtotal' => $service['subtotal'],
                 ]);
                 if (!$bookingService) {
                     DB::rollBack();
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
                 }
+                $serviceModel->decrement('quantity', $service['quantity']);
             }
-            $transaction = Transaction::query()->create([
-                'booking_id' => $booking->id,
-                'subtotal' => $booking->subtotal,
-                'payment_method' => "Thanh toán Vnpay",
-                'status' => Transaction::STATUS_FAIL,
-            ]);
-            if (!$transaction) {
-                DB::rollBack();
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-            }
+            // Cập nhật tổng tiền booking
+            $booking->subtotal = $totalSubtotal;
+            $booking->save();
             $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-            $vnp_Returnurl = $request->url;
+            $vnp_Returnurl = $request->url . "/VNPAY";
             $vnp_TmnCode = "5N23P3P2";
             $vnp_HashSecret = "IXXRTPQNFDPFJHDKXSUJZOJURZQLMJIK";
             $vnp_TxnRef = $booking->id; // $request->booking_id
@@ -132,89 +142,66 @@ class VnpayController extends Controller
                 $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret); //  
                 $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
             }
-            DB::commit();
             $data = [
-                "url" => $vnp_Url,
-                "booking_id" => $booking->id,
-                "transaction_id" => $transaction->id,
-                "seats" => $request->seats,
-                "services" => $request->services
+                "url" => $vnp_Url
             ];
+            DB::commit();
             return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, booking_id, transaction_id , seats, services) 
-    // * vnp_TransactionStatus: của vnpay trả về
+    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef) 
     public function send(Request $request)
     {
         DB::beginTransaction();
         try {
+            $booking = Booking::find($request->vnp_TxnRef);
+            if (!$booking) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có booking nào');
+            }
+            if ($booking->status == 'Payment successful') {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Booking đã được thanh toán thành công');
+            }
+            if (!$request->vnp_TxnRef) {
+                return ApiResponse(false, [], Response::HTTP_BAD_REQUEST, 'Vui lòng kiểm tra lại');
+            }
             if ($request->vnp_TransactionStatus == 00) {
-                $booking = Booking::where('id', $request->booking_id)->update([
-                    'status' => Booking::STATUS_PAID
-                ]);
-                if (!$booking) {
-                    DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                }
-                $transactionUpdate = Transaction::where('id', $request->transaction_id)->update([
-                    "status" => Transaction::STATUS_SUCCESS,
-                ]);
-                if (!$transactionUpdate) {
-                    DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                }
-                foreach ($request->seats as $seatId) {
-                    $seatShotime = SeatShowtime::where('seat_id', $seatId)->update([
-                        'status' => SeatShowtime::STATUS_RESERVED
-                    ]);
-                    if (!$seatShotime) {
-                        DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                $booking->status = 'Payment successful';
+                $booking->save();
+                $seats = Ticket::where('booking_id', $request->vnp_TxnRef)->pluck('seat_id')->toArray();
+                foreach ($seats as $seatId) {
+                    $seatShowtime = SeatShowtime::where('seat_id', $seatId)
+                        ->where('showtime_id', $booking->showtime_id)
+                        ->first();
+                    if ($seatShowtime) {
+                        $seatShowtime->user_id = $booking->user_id;
+                        $seatShowtime->status = SeatShowtime::STATUS_RESERVED;
+                        $seatShowtime->save();
                     }
                 }
+                $transaction = new Transaction();
+                $transaction->booking_id = $request->vnp_TxnRef;
+                $transaction->subtotal = $booking->subtotal;
+                $transaction->payment_method = 'Momo';
+                $transaction->status = 'Đã thanh toán';
+                $transaction->save();
                 DB::commit();
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-            } else {
-                $booking = Booking::where('id', $request->booking_id)->update([
-                    'deleted' => 1
-                ]);
-                if (!$booking) {
-                    DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                }
-                $transactionUpdate = Transaction::where('id', $request->transaction_id)->update([
-                    "deleted" => 1
-                ]);
-                if (!$transactionUpdate) {
-                    DB::rollBack();
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                }
-                foreach ($request->seats as $seatId) {
-                    $cridential = Ticket::where('seat_id', $seatId)->update([
-                        'deleted' => 1
-                    ]);
-                    $seatShotime = SeatShowtime::where('seat_id', $seatId)->update([
-                        'status' => SeatShowtime::STATUS_SELECTED
-                    ]);
-                    if (!$cridential || !$seatShotime) {
-                        DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            } elseif ($request->vnp_TransactionStatus == 02) {
+                try {
+                    Ticket::where('booking_id', $request->vnp_TxnRef)->delete();
+                    $bookingServices = BookingService::where('booking_id', $request->vnp_TxnRef)->get();
+                    foreach ($bookingServices as $bookingService) {
+                        $bookingService->delete();
                     }
+                    Booking::where('id', $request->vnp_TxnRef)->delete();
+                    DB::commit();
+                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, messageResponseActionFailed());
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
                 }
-                foreach ($request->services as $service) {
-                    $bookingService = BookingService::where('service_id', $service['service_id'])->update([
-                        'deleted' => 1
-                    ]);
-                    if (!$bookingService) {
-                        DB::rollBack();
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                    }
-                }
-                DB::commit();
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Đã hủy thanh toán");
             }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

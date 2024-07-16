@@ -22,7 +22,7 @@ class Showtime extends Model
     protected $fillable = [
         'movie_id',
         'cinema_screen_id',
-        'subtitle',  
+        'subtitle',
         'show_date',
         'show_time',
         'status',
@@ -41,6 +41,14 @@ class Showtime extends Model
     public function cinemaScreen()
     {
         return $this->belongsTo(CinemaScreen::class);
+    }
+
+    public function seatShowtime(){
+        return $this->hasOne(SeatShowtime::class);
+    }
+
+    public function bookings(){
+        return $this->hasMany(Booking::class);
     }
 
 }

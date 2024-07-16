@@ -9,6 +9,7 @@ use App\Models\Service;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ServiceController extends Controller
 {
@@ -20,7 +21,7 @@ class ServiceController extends Controller
     //GET api/dashboard/services
     public function index(Request $request)
     {
-        try{
+        try {
             $this->authorize('checkPermission', Service::class);
             $this->limit == $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
@@ -36,7 +37,7 @@ class ServiceController extends Controller
                 ]
             ];
             return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
-        }catch(\Exception $e){
+        } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         };
     }
@@ -80,7 +81,7 @@ class ServiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-     // GET /api/dashboard/service/update/{id}
+    // GET /api/dashboard/service/update/{id}
     public function update(ServiceRequest $request, string $id)
     {
         try {
@@ -98,17 +99,26 @@ class ServiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-        //  GET /api/dashboard/service/delete/{id}
+    //  GET /api/dashboard/service/delete/{id}
     public function destroy(string $id)
     {
         try {
             $this->authorize('delete', Service::class);
+            DB::beginTransaction();
             $service = Service::where('id', $id)->where('deleted', 0)->first();
             empty($service) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $service->deleted = 1;
-            $service->save();
+            $hasRelatedRecords = $service->bookingServices()->exists();
+            if ($hasRelatedRecords) {
+                $service->deleted = 1;
+                $service->save();
+            } else {
+                $service->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

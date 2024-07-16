@@ -13,6 +13,7 @@ use App\Models\SeatShowtime;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class ShowtimeController extends Controller
 {
@@ -67,16 +68,16 @@ class ShowtimeController extends Controller
                 if (!$showtime) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
                 }
-                $allSeatID = Seat::where('cinema_screen_id', $showtime->cinema_screen_id)->where('status',Seat::STATUS_OCCUPIED)->pluck('id');
-                foreach($allSeatID as $seatID){
-                   $cridential=  SeatShowtime::query()->create([
-                    'showtime_id'=>$showtime->id,
-                    'seat_id'=> $seatID,
-                    'status' => SeatShowtime::STATUS_AVAILABLE
-                   ]);
-                   if(!$cridential){
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-                   }
+                $allSeatID = Seat::where('cinema_screen_id', $showtime->cinema_screen_id)->where('status', Seat::STATUS_OCCUPIED)->pluck('id');
+                foreach ($allSeatID as $seatID) {
+                    $cridential =  SeatShowtime::query()->create([
+                        'showtime_id' => $showtime->id,
+                        'seat_id' => $seatID,
+                        'status' => SeatShowtime::STATUS_AVAILABLE
+                    ]);
+                    if (!$cridential) {
+                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                    }
                 }
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } else {
@@ -169,12 +170,24 @@ class ShowtimeController extends Controller
     {
         try {
             $this->authorize('delete', Showtime::class);
+            DB::beginTransaction();
             $showtime = Showtime::where('id', $id)->where('deleted', 0)->first();
             empty($showtime) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $showtime->deleted = 1;
-            $showtime->save();
+            $hasRelatedRecords = $showtime->movie()->exits()
+                || $showtime->cinemaScreen()->exits()
+                || $showtime->seatShowtime()->exits()
+                || $showtime->bookings();
+            if ($hasRelatedRecords) {
+                $showtime->deleted = 1;
+                $showtime->save();
+            } else {
+                $showtime->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

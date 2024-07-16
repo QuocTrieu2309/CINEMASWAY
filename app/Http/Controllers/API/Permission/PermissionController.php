@@ -9,6 +9,7 @@ use App\Models\Permission;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class PermissionController extends Controller
 {
@@ -27,7 +28,7 @@ class PermissionController extends Controller
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Permission::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'permissions' =>PermissionResource::collection($data),
+                'permissions' => PermissionResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -100,12 +101,20 @@ class PermissionController extends Controller
     {
         try {
             $this->authorize('delete', Permission::class);
+            DB::beginTransaction();
             $permission = Permission::where('id', $id)->where('deleted', 0)->first();
             empty($permission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $permission->deleted = 1;
-            $permission->save();
+            $hasRelatedRecords = $permission->userPermissions()->exists();
+            if ($hasRelatedRecords) {
+                $permission->deleted = 1;
+                $permission->save();
+            } else {
+                $permission->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

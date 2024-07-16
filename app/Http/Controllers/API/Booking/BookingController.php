@@ -11,6 +11,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -53,52 +54,49 @@ class BookingController extends Controller
             $booking = Booking::where('id', $id)->where('deleted', 0)->first();
             empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $data['booking'] =  new  BookingResource($booking);
-            $bookingServices = BookingService::where('booking_id',$booking->id)->get();
+            $bookingServices = BookingService::where('booking_id', $booking->id)->get();
             $total = 0;
-            $data['services'] = BookingServiceResource::collection( $bookingServices);
-            foreach($bookingServices as $bookingService){   
+            $data['services'] = BookingServiceResource::collection($bookingServices);
+            foreach ($bookingServices as $bookingService) {
                 $total = $total +  $bookingService->subtotal;
             }
-            $tickets = Ticket::where('booking_id',$booking->id)->get();
-            if(!$tickets){
+            $tickets = Ticket::where('booking_id', $booking->id)->get();
+            if (!$tickets) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, messageResponseActionFailed());
             }
-            $quantity = count( $tickets);
-            $ticketSubtotal = ($booking->subtotal)-$total;
+            $quantity = count($tickets);
+            $ticketSubtotal = ($booking->subtotal) - $total;
             $data['ticket'] = [
-                'quantity'=> $quantity,
-                'subtotal'=> $ticketSubtotal
+                'quantity' => $quantity,
+                'subtotal' => $ticketSubtotal
             ];
-            
-            return ApiResponse(true,$data, Response::HTTP_OK, messageResponseData());
+
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    //GET api/dashboard/booking/update/{id}
-    // public function update(BookingRequest $request, $id)
-    // {
-    //     try {
-    //         $this->authorize('checkPermission', Booking::class);
-    //         $booking = Booking::where('id', $id)->where('deleted', 0)->first();
-    //         empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-    //         $bookingUpdated = Booking::where('id', $id)->update($request->all());
-    //         return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
-    //     } catch (\Exception $e) {
-    //         return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-    //     }
-    // }
-    //GET api/dashboard/booking/delete/{id}
+
     public function destroy($id)
     {
         try {
             $this->authorize('delete', Booking::class);
+            DB::beginTransaction();
             $booking = Booking::where('id', $id)->where('deleted', 0)->first();
             empty($booking) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $booking->deleted = 1;
-            $booking->save();
+            $hasRelatedRecords = $booking->transactions()->exists() ||
+                $booking->bookingServices()->exists() ||
+                $booking->tickets()->exists();
+            if ($hasRelatedRecords) {
+                $booking->deleted = 1;
+                $booking->save();
+            } else {
+                $booking->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

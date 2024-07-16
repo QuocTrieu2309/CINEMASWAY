@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class SeatController extends Controller
 {
@@ -56,7 +57,7 @@ class SeatController extends Controller
             $this->authorize('checkPermission', Seat::class);
             $data  = $request->all();
             $seatType = SeatType::find($request->seat_type_id);
-            if(!$seatType){
+            if (!$seatType) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseNotFound());
             }
             $type = $seatType->name;
@@ -88,11 +89,11 @@ class SeatController extends Controller
                 $count = Str::length($layoutRow);
                 $seatMapType = $layoutRow[0];
                 $checkType = "";
-                if($seatMapType == 'N'){
-                     $checkType = 'thường';
-                }elseif($seatMapType == 'V'){
+                if ($seatMapType == 'N') {
+                    $checkType = 'thường';
+                } elseif ($seatMapType == 'V') {
                     $checkType = 'vip';
-                }elseif($seatMapType == 'C'){
+                } elseif ($seatMapType == 'C') {
                     $checkType = 'đôi';
                 }
                 if (!str_contains($type,  $checkType)) {
@@ -195,7 +196,7 @@ class SeatController extends Controller
             //       if(!$cridential){
             //         return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             //       }
-            //     }                           
+            //     }
             // }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
@@ -211,12 +212,23 @@ class SeatController extends Controller
     {
         try {
             $this->authorize('delete', Seat::class);
+            DB::beginTransaction();
             $seat = Seat::where('id', $id)->where('deleted', 0)->first();
             empty($seat) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $seat->deleted = 1;
-            $seat->save();
+            $hasRelatedRecords = $seat->seatShowtime()->exists() ||
+                $seat->cinemaScreen()->exists() ||
+                $seat->seatType()->exists() ||
+                $seat->ticket()->exists();
+            if ($hasRelatedRecords) {
+                $seat->deleted = 1;
+                $seat->save();
+            } else {
+                $seat->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollback();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

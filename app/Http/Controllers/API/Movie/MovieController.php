@@ -111,7 +111,8 @@ class MovieController extends Controller
             } else {
                 $movie->delete();
             }
-            DB::commit();            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            DB::commit();
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

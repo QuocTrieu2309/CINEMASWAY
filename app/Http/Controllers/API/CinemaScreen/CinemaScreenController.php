@@ -109,13 +109,11 @@ class CinemaScreenController extends Controller
         try {
             $this->authorize('delete', CinemaScreen::class);
             DB::beginTransaction();
-
             $CinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
             empty($CinemaScreen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $hasRelatedRecords = $CinemaScreen->seatMaps()->exists() ||
                 $CinemaScreen->seats()->exists() ||
                 $CinemaScreen->showtimes()->exists();
-
             if ($hasRelatedRecords) {
                 $CinemaScreen->deleted = 1;
                 $CinemaScreen->save();
@@ -123,6 +121,7 @@ class CinemaScreenController extends Controller
                 $CinemaScreen->delete();
             }
             DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollback();

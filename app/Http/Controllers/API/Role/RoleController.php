@@ -104,14 +104,14 @@ class RoleController extends Controller
             DB::beginTransaction();
             $role = Role::where('id', $id)->where('deleted', 0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-              $hasRelatedRecords =  $role->users()->exists();
-              if ($hasRelatedRecords) {
-                  $role->deleted = 1;
-                  $role->save();
-              } else {
-                  $role->delete();
-              }
-              DB::commit();
+            $hasRelatedRecords =  $role->users()->exists();
+            if ($hasRelatedRecords) {
+                $role->deleted = 1;
+                $role->save();
+            } else {
+                $role->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollBack();

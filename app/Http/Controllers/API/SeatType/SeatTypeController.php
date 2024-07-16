@@ -13,10 +13,10 @@ use Illuminate\Support\Facades\DB;
 
 class SeatTypeController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:sanctum');
-    // }
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
     /**
      * GET api/dashboard/seat-type
      * @param Request $request

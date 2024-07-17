@@ -54,7 +54,7 @@ class SeatMapController extends Controller
             empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
             $layout = $seatMap->layout;
             $layoutArr  = explode('|', $layout);
-            $seatAll = Seat::where('cinema_screen_id',$seatMap->cinema_screen_id)->get();
+            $seatAll = Seat::where('cinema_screen_id', $seatMap->cinema_screen_id)->get();
             $detail = [];
             $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
             foreach ($seatAll as $item) {
@@ -76,10 +76,10 @@ class SeatMapController extends Controller
                     array_splice($detail, $i, 0, $noSeat);
                 } else {
                     $seatChecks = Seat::where('seat_number', 'LIKE',  $characterArr[$i] . '%')
-                    ->first();
-                    if(! $seatChecks){
+                        ->first();
+                    if (!$seatChecks) {
                         $layoutRow = str_replace('X', '', $layoutArr[$i]);
-                        for($z = 0; $z < Str::length($layoutRow); $z++){
+                        for ($z = 0; $z < Str::length($layoutRow); $z++) {
                             $detail[$i][] =  [
                                 'seat_number' => '-',
                                 'type' => ''
@@ -94,8 +94,8 @@ class SeatMapController extends Controller
                                 ]
                             ];
                             array_splice($detail[$i], $j, 0, $noSeatNumber);
-                        }else{
-                            $detail[$i][$j]['type'] =$layoutArr[$i][$j];
+                        } else {
+                            $detail[$i][$j]['type'] = $layoutArr[$i][$j];
                         }
                     }
                 }
@@ -199,14 +199,16 @@ class SeatMapController extends Controller
             DB::beginTransaction();
             $seatMap = SeatMap::where('id', $id)->where('deleted', 0)->first();
             empty($seatMap) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $hasRelatedRecords =$seatMap->cinemaScreen()->exists();
+            $hasRelatedRecords = $seatMap->cinemaScreen()->exists();
             if ($hasRelatedRecords) {
                 $seatMap->deleted = 1;
                 $seatMap->save();
             } else {
                 $seatMap->delete();
             }
-            DB::commit();            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            DB::commit();
+
+            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

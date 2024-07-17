@@ -9,6 +9,7 @@ use App\Http\Resources\API\Ticket\TicketResource;
 use App\Http\Requests\API\Ticket\TicketRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class TicketController extends Controller
 {
@@ -86,9 +87,9 @@ class TicketController extends Controller
             $ticketUpdate = Ticket::where('id', $id)->update([
                 'status' => $request->get('status') ?? $ticket->status,
             ]);
-            if(!$ticketUpdate){
+            if (!$ticketUpdate) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
-               }
+            }
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
@@ -105,13 +106,22 @@ class TicketController extends Controller
     {
         try {
             $this->authorize('delete', Ticket::class);
+            DB::beginTransaction();
             $ticket = Ticket::where('id', $id)->where('deleted', 0)->first();
             empty($ticket) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $ticket->deleted = 1;
-            $ticket->save();
+            $hasRelatedRecords = $ticket->booking()->exists()
+                || $ticket->booking()->exists();
+            if ($hasRelatedRecords) {
+                $ticket->deleted = 1;
+                $ticket->save();
+            } else {
+                $ticket->delete();
+            }
+            DB::commit();
 
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

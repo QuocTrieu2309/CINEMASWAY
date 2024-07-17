@@ -9,6 +9,7 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class TransactionController extends Controller
 {
@@ -106,12 +107,21 @@ class TransactionController extends Controller
     {
         try {
             $this->authorize('delete', Transaction::class);
+            DB::beginTransaction();
             $transaction = Transaction::where('id', $id)->where('deleted', 0)->first();
             empty($transaction) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $transaction->deleted = 1;
-            $transaction->save();
+            $hasRelatedRecords = $transaction->booking();
+            if ($hasRelatedRecords) {
+                $transaction->deleted = 1;
+                $transaction->save();
+            } else {
+                $transaction->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

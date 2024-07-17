@@ -49,6 +49,14 @@ class ShowtimeController extends Controller
     {
         try {
             $this->authorize('checkPermission', Showtime::class);
+            $movie = Movie::find($request->movie_id);
+            if ($movie && $movie->end_date) {
+                $endDate = Carbon::parse($movie->end_date);
+                $showDate = Carbon::parse($request->show_date);
+                if ($showDate->greaterThan($endDate)) {
+                    return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể tạo xuất chiếu cho phim này vì ngày chiếu nằm ngoài thời gian chiếu của phim.");
+                }
+            }
             $showTime = Carbon::parse($request->show_time);
             $existingShowtimes = Showtime::where('cinema_screen_id', $request->cinema_screen_id)
                 ->where('show_date', $request->show_date)

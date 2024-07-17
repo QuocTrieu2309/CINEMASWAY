@@ -28,7 +28,8 @@ class Movie extends Model
         'description',
         'image',
         'trailer',
-        'deleted'
+        'deleted',
+        'end_date'
    ];
    protected $hidden = [
        'created_by',

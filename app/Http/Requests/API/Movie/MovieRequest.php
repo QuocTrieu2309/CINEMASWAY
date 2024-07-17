@@ -45,6 +45,7 @@ class MovieRequest extends FormRequest
                             'actor' => 'required|string|max:60',
                             'duration' => 'required|numeric|min:90',
                             'release_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
+                            'end_date' =>'required|date|after:release_date',
                             'status' => [
                                 'required',
                                 Rule::in([
@@ -83,6 +84,7 @@ class MovieRequest extends FormRequest
                             'actor' => 'required|string|max:60',
                             'duration' => 'required|numeric|min:90',
                             'release_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
+                            'end_date' =>'required|date|after:release_date',
                             'status' => [
                                 'required',
                                 Rule::in([
@@ -123,7 +125,9 @@ class MovieRequest extends FormRequest
             'in' => ':attribute phải nằm trong :in',
             'numeric' => ':attribute phải là số',
             'mimes' => ':attribute phải có định dạng thuộc :mimes',
-            'url' => ':attribute phải có định dạng là đường link'
+            'url' => ':attribute phải có định dạng là đường link',
+            'end_date.after' => ':attribute phải sau ngày phát hành',
+
         ];
     }
 
@@ -136,6 +140,7 @@ class MovieRequest extends FormRequest
             'actor' => 'Diễn viên',
             'duration' => 'Thời lượng',
             'release_date' => 'Thời gian ra mắt',
+            'end_date' =>'Ngày kết thúc',
             'status' => 'Trạng thái',
             'rated' => 'Điều kiện độ tuổi',
             'description' => 'Miêu tả',

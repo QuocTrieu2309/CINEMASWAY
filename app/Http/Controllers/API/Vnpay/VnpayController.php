@@ -190,6 +190,16 @@ class VnpayController extends Controller
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } elseif ($request->vnp_TransactionStatus == 02) {
                 try {
+                    $seats = Ticket::where('booking_id', $request->vnp_TxnRef)->pluck('seat_id')->toArray();
+                    foreach ($seats as $seatId) {
+                        $seatShowtime = SeatShowtime::where('seat_id', $seatId)
+                            ->where('showtime_id', $booking->showtime_id)
+                            ->first();
+                        if ($seatShowtime) {
+                            $seatShowtime->user_id = null;
+                            $seatShowtime->save();
+                        }
+                    }
                     Ticket::where('booking_id', $request->vnp_TxnRef)->delete();
                     $bookingServices = BookingService::where('booking_id', $request->vnp_TxnRef)->get();
                     foreach ($bookingServices as $bookingService) {
@@ -197,7 +207,7 @@ class VnpayController extends Controller
                     }
                     Booking::where('id', $request->vnp_TxnRef)->delete();
                     DB::commit();
-                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, messageResponseActionFailed());
+                    return ApiResponse(false, null, Response::HTTP_OK, messageResponseActionFailed());
                 } catch (\Exception $e) {
                     DB::rollBack();
                     return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

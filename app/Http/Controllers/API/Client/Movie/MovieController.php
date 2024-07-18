@@ -19,20 +19,20 @@ class MovieController extends Controller
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $today = now()->toDateString(); // cập nhật thêm
+            $today = now()->toDateString();
             if ($request->status == 1) {
                 $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_CURRENTLY)
-                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->where('end_date', '>=', $today)
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);
             } elseif ($request->status == 2) {
                 $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_COMING)
-                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->where('end_date', '>=', $today)
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);
             } else {
                 $data = Movie::where('deleted', 0)
-                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->where('end_date', '>=', $today)
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);
             }

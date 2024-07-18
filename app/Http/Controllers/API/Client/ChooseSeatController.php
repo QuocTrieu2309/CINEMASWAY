@@ -9,6 +9,7 @@ use App\Models\SeatMap;
 use App\Models\SeatShowtime;
 use App\Models\Service;
 use App\Models\Showtime;
+use Carbon\Carbon;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,10 +19,10 @@ use Illuminate\Support\Facades\Validator;
 
 class ChooseSeatController extends Controller
 {
-    public function __construct()
-    {
-        $this->middleware('auth:sanctum');
-    }
+    // public function __construct()
+    // {
+    //     $this->middleware('auth:sanctum');
+    // }
 
     /**
      * Hiển thị danh sách ghế theo seatmap dựa vào showtime_id
@@ -45,7 +46,11 @@ class ChooseSeatController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
         try {
-            $user_id = auth('sanctum')->user()->id;
+            // $user_id = auth('sanctum')->user()->id;
+            $user_id = 1;
+            $currentDate = Carbon::now('Asia/Ho_Chi_Minh')->toDateString();
+            $numberCurrentDate = Carbon::now('Asia/Ho_Chi_Minh')->dayOfWeek;
+            $currentTime = Carbon::now('Asia/Ho_Chi_Minh')->toTimeString();
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
@@ -92,7 +97,9 @@ class ChooseSeatController extends Controller
                             'id' => $seat->id,
                             'seat_number' => $seat->seat_number,
                             'type' => $seat->seatType->name,
-                            'price' => $seat->seatType->price,
+                            'price' => ($numberCurrentDate === Carbon::SATURDAY || $numberCurrentDate === Carbon::SUNDAY)
+                            ? $seat->seatType->promotion_price
+                            : $seat->seatType->price,
                             'status' => $status,
                         ];
                     }
@@ -143,8 +150,11 @@ class ChooseSeatController extends Controller
                 'screen' => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
-
-            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+            if($currentTime < $showtime->show_time && $currentDate <= $showtime->show_date) {
+                return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(true, null, Response::HTTP_OK, 'Suất chiếu đã hết hạn.');
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

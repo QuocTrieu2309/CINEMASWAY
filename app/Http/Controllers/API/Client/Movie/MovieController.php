@@ -19,12 +19,22 @@ class MovieController extends Controller
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
+            $today = now()->toDateString(); // cập nhật thêm
             if ($request->status == 1) {
-                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_CURRENTLY)->orderBy($this->sort, $this->order)->paginate($this->limit);
+                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_CURRENTLY)
+                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
             } elseif ($request->status == 2) {
-                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_COMING)->orderBy($this->sort, $this->order)->paginate($this->limit);
+                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_COMING)
+                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
             } else {
-                $data = Movie::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+                $data = Movie::where('deleted', 0)
+                ->where('end_date', '>=', $today)  // cập nhật thêm
+                ->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
             }
             $result = [
                 'movie' => MovieResource::collection($data),
@@ -40,7 +50,7 @@ class MovieController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    // Get api/client/movie/{id} 
+    // Get api/client/movie/{id}
     public function show($id)
     {
         try {

@@ -236,6 +236,17 @@ class MomoController extends Controller
             } elseif ($responseData['resultCode'] == 1006) {
                 DB::beginTransaction();
                 try {
+                    $seats = Ticket::where('booking_id', $bookingId)->pluck('seat_id')->toArray();
+                    foreach ($seats as $seatId) {
+                        $seatShowtime = SeatShowtime::where('seat_id', $seatId)
+                            ->where('showtime_id', $booking->showtime_id)
+                            ->first();
+                        if ($seatShowtime) {
+                            $seatShowtime->user_id = null;
+                            $seatShowtime->save();
+                        }
+                    }
+
                     Ticket::where('booking_id', $bookingId)->delete();
                     $bookingServices = BookingService::where('booking_id', $bookingId)->get();
                     foreach ($bookingServices as $bookingService) {

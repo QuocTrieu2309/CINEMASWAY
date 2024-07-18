@@ -64,7 +64,7 @@ class MovieController extends Controller
         try {
             $this->authorize('checkPermission', Movie::class);
             $data = $request->all();
-            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
+            // $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
             $movie = Movie::create($data);
             if (!$movie) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
@@ -92,7 +92,7 @@ class MovieController extends Controller
                 return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể cập nhật phim khi phim vẫn còn xuất chiếu.");
             }
             $data = $request->all();
-            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
+            // $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
             $cridential = $movie->update($data);
             if (!$cridential) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
@@ -129,6 +129,36 @@ class MovieController extends Controller
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollBack();
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+
+
+// chỉ đẩy ra những phim có ngày kết thúc < = ngày hôm nay
+    public function index2(Request $request)
+    {
+        try {
+            $this->authorize('checkPermission', Movie::class);
+            $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
+            $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
+            $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
+            $currentDate = now()->format('Y-m-d');
+            $data = Movie::where('deleted', 0)
+                ->where('end_date', '<=', $currentDate)
+                ->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
+
+            $result = [
+                'movies' => MovieResource::collection($data),
+                'meta' => [
+                    'total' => $data->total(),
+                    'perPage' => $data->perPage(),
+                    'currentPage' => $data->currentPage(),
+                    'lastPage' => $data->lastPage(),
+                ],
+            ];
+            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

@@ -49,14 +49,6 @@ class ShowtimeController extends Controller
     {
         try {
             $this->authorize('checkPermission', Showtime::class);
-            $movie = Movie::find($request->movie_id);
-            if ($movie && $movie->end_date) {
-                $endDate = Carbon::parse($movie->end_date);
-                $showDate = Carbon::parse($request->show_date);
-                if ($showDate->greaterThan($endDate)) {
-                    return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể tạo xuất chiếu cho phim này vì ngày chiếu nằm ngoài thời gian chiếu của phim.");
-                }
-            }
             $showTime = Carbon::parse($request->show_time);
             $existingShowtimes = Showtime::where('cinema_screen_id', $request->cinema_screen_id)
                 ->where('show_date', $request->show_date)
@@ -72,21 +64,28 @@ class ShowtimeController extends Controller
                 }
             }
             if ($canCreate) {
+                $result = Seat::where('cinema_screen_id', $request->cinema_screen_id)->where('status', Seat::STATUS_OCCUPIED)->get();
+                if (count($result) == 0) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Phòng chiếu chưa có ghế");
+                }
                 $showtime = Showtime::create($request->all());
                 if (!$showtime) {
-                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Tạo suất chiếu chưa thành công");
                 }
                 $allSeatID = Seat::where('cinema_screen_id', $showtime->cinema_screen_id)->where('status', Seat::STATUS_OCCUPIED)->pluck('id');
-                foreach ($allSeatID as $seatID) {
-                    $cridential =  SeatShowtime::query()->create([
-                        'showtime_id' => $showtime->id,
-                        'seat_id' => $seatID,
-                        'status' => SeatShowtime::STATUS_AVAILABLE
-                    ]);
-                    if (!$cridential) {
-                        return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                if ($allSeatID) {
+                    foreach ($allSeatID as $seatID) {
+                        $cridential =  SeatShowtime::query()->create([
+                            'showtime_id' => $showtime->id,
+                            'seat_id' => $seatID,
+                            'status' => SeatShowtime::STATUS_AVAILABLE
+                        ]);
+                        if (!$cridential) {
+                            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
+                        }
                     }
                 }
+
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } else {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Suất chiếu mới phải cách ít nhất 1 giờ so với các suất chiếu khác.');

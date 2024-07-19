@@ -47,12 +47,12 @@ class ChooseSeatController extends Controller
         }
         try {
             $user_id = auth('sanctum')->user()->id;
-            $currentDate = Carbon::now('Asia/Ho_Chi_Minh')->toDateString();
-            $numberCurrentDate = Carbon::now('Asia/Ho_Chi_Minh')->dayOfWeek;
-            $currentTime = Carbon::now('Asia/Ho_Chi_Minh')->toTimeString();
+            $currentDateTime = Carbon::now('Asia/Ho_Chi_Minh');
+            $numberCurrentDate = $currentDateTime->dayOfWeek;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
+            $showDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $showtime->show_date . ' ' . $showtime->show_time,'Asia/Ho_Chi_Minh');
             if (!$cinemaScreen) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Cinema Screen');
             }
@@ -149,10 +149,10 @@ class ChooseSeatController extends Controller
                 'screen' => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
-            if($currentTime < $showtime->show_time && $currentDate <= $showtime->show_date) {
+            if($currentDateTime->lessThan($showDateTime)) {
                 return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
             } else {
-                return ApiResponse(true, null, Response::HTTP_OK, 'Suất chiếu đã hết hạn.');
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, 'Suất chiếu đã hết hạn.');
             }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

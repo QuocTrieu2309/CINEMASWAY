@@ -48,11 +48,12 @@ class ChooseSeatController extends Controller
         try {
             $user_id = auth('sanctum')->user()->id;
             $currentDateTime = Carbon::now('Asia/Ho_Chi_Minh');
-            $numberCurrentDate = $currentDateTime->dayOfWeek;
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
             $showDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $showtime->show_date . ' ' . $showtime->show_time,'Asia/Ho_Chi_Minh');
+            $numberOfShowDate = $showDateTime->dayOfWeek;
+
             if (!$cinemaScreen) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Cinema Screen');
             }
@@ -96,7 +97,7 @@ class ChooseSeatController extends Controller
                             'id' => $seat->id,
                             'seat_number' => $seat->seat_number,
                             'type' => $seat->seatType->name,
-                            'price' => ($numberCurrentDate === Carbon::SATURDAY || $numberCurrentDate === Carbon::SUNDAY)
+                            'price' => ($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
                             ? $seat->seatType->promotion_price
                             : $seat->seatType->price,
                             'status' => $status,

@@ -5,18 +5,22 @@ namespace App\Http\Controllers\API\Momo;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Client\ClientRequest;
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\BookingService;
+use App\Models\Seat;
 use App\Models\SeatShowtime;
 use App\Models\Service;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Milon\Barcode\DNS1D;
 
 class MomoController extends Controller
@@ -101,7 +105,7 @@ class MomoController extends Controller
             $accessKey = 'F8BBA842ECF85';
             $secretKey = 'K951B6PE1waDMi640xX08PD3vg6EkVlz';
             $partnerCode = 'MOMO';
-            $redirectUrl = $request->url. '/MOMO?booking_id=' . $booking->id;
+            $redirectUrl = $request->url . '/MOMO?booking_id=' . $booking->id;
             $ipnUrl = route('momo.callback');
             $orderInfo = 'pay with MoMo';
             $requestType = 'payWithATM';
@@ -208,14 +212,11 @@ class MomoController extends Controller
             $response = Http::withHeaders([
                 'Content-Type' => 'application/json',
             ])->post('https://test-payment.momo.vn/v2/gateway/api/query', $requestBody);
-
             $responseData = $response->json();
-
             if ($responseData['resultCode'] == 0) {
                 $booking->status = 'Payment successful';
                 $booking->save();
                 $seats = Ticket::where('booking_id', $bookingId)->pluck('seat_id')->toArray();
-
                 foreach ($seats as $seatId) {
                     $seatShowtime = SeatShowtime::where('seat_id', $seatId)
                         ->where('showtime_id', $booking->showtime_id)
@@ -226,13 +227,78 @@ class MomoController extends Controller
                         $seatShowtime->save();
                     }
                 }
-
                 $transaction = new Transaction();
                 $transaction->booking_id = $bookingId;
                 $transaction->subtotal = $booking->subtotal;
                 $transaction->payment_method = 'Momo';
                 $transaction->status = 'Đã thanh toán';
                 $transaction->save();
+                // mail
+                $seatIds = Ticket::where('booking_id', $bookingId)->pluck('seat_id')->toArray();
+                $seats = Seat::whereIn('id', $seatIds)->get();
+                $seatDetails = $seats->mapWithKeys(function ($seat) {
+                    return [
+                        $seat->seat_number => [
+                            'seat_price' => $seat->seatType->price ?? 0,
+                            'seat_type_name' => $seat->seatType->name ?? ''
+                        ]
+                    ];
+                });
+                $seatTypeName = $seats->first()->seatType->name ?? '';
+                $serviceIds = BookingService::where('booking_id', $bookingId)->pluck('service_id');
+                $services = Service::whereIn('id', $serviceIds)->get();
+                $serviceDetails = [];
+                $bookingServices = BookingService::where('booking_id', $bookingId)->get();
+                foreach ($bookingServices as $bookingService) {
+                    $service = $services->firstWhere('id', $bookingService->service_id);
+                    if ($service) {
+                        $serviceDetails[$service->name] = [
+                            'quantity' => $bookingService->quantity,
+                            'price' => $bookingService->subtotal / $bookingService->quantity,
+                            'total' => $bookingService->subtotal,
+                        ];
+                    }
+                }
+                $totalServicePrice = $bookingServices->sum('subtotal');
+                $seats = Ticket::where('booking_id', $bookingId)->pluck('seat_id')->toArray();
+                $seatShowtimes = SeatShowtime::with('seat.seatType')
+                    ->whereIn('seat_id', $seats)
+                    ->get();
+                $showtime = $booking->showtime;
+                $showDate = Carbon::parse($showtime->show_date)->dayOfWeek;
+                // Lấy giá ghế với điều kiện ngày cuối tuần
+                $seatPrice = $seatShowtimes->first()->seat->seatType->price ?? 0;
+                $seatPrice = ($showDate === Carbon::SATURDAY || $showDate === Carbon::SUNDAY)
+                    ? ($seatShowtimes->first()->seat->seatType->promotion_price ?? $seatPrice)
+                    : $seatPrice;
+
+                $seatPrice = $seatShowtimes->isEmpty() ? 0 : $seatPrice;
+                $numberOfSeats = count($seats);
+                $seatPrice = floatval($seatPrice);
+                $seatDetails = [
+                    'seat_numbers' => $seatDetails->keys(),
+                    'seat_ids' => $seats,
+                    'seat_price' => $seatPrice,
+                    'price' => $numberOfSeats * $seatPrice,
+                    'services' => $serviceDetails,
+                    'total_service_price' => $totalServicePrice,
+                    'seat_types' => $seatTypeName
+                ];
+                // Gửi email xác nhận
+                $barcodeUrl = $booking->code;
+                $cinema = $booking->showtime->cinemaScreen->cinema;
+                $showDate = $booking->showtime->show_date;
+                $showTime = $booking->showtime->show_time;
+                $totalAmount = $booking->subtotal;
+                Mail::to($booking->user->email)->send(new BookingConfirmationMail(
+                    $booking,
+                    $barcodeUrl,
+                    $cinema,
+                    $showDate,
+                    $showTime,
+                    $seatDetails,
+                    $totalAmount
+                ));
             } elseif ($responseData['resultCode'] == 1006) {
                 DB::beginTransaction();
                 try {
@@ -250,11 +316,11 @@ class MomoController extends Controller
                     Ticket::where('booking_id', $bookingId)->delete();
                     $bookingServices = BookingService::where('booking_id', $bookingId)->get();
                     foreach ($bookingServices as $bookingService) {
-                    $serviceModel = Service::find($bookingService->service_id);
-                    if ($serviceModel) {
-                        $serviceModel->increment('quantity', $bookingService->quantity);
-                    }
-                    $bookingService->delete();
+                        $serviceModel = Service::find($bookingService->service_id);
+                        if ($serviceModel) {
+                            $serviceModel->increment('quantity', $bookingService->quantity);
+                        }
+                        $bookingService->delete();
                     }
                     BookingService::where('booking_id', $bookingId)->delete();
                     Booking::where('id', $bookingId)->delete();

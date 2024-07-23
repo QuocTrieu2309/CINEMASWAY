@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\API\Vnpay;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BookingConfirmationMail;
 use App\Models\Booking;
 use App\Models\BookingService;
+use App\Models\Seat;
 use App\Models\SeatShowtime;
 use App\Models\Service;
 use App\Models\Showtime;
 use App\Models\Ticket;
 use App\Models\Transaction;
+use Carbon\Carbon;
 use Cloudinary\Api\Metadata\Validators\StringLength;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Milon\Barcode\DNS1D;
 
 class VnpayController extends Controller
@@ -139,7 +143,7 @@ class VnpayController extends Controller
             }
             $vnp_Url = $vnp_Url . "?" . $query;
             if (isset($vnp_HashSecret)) {
-                $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret); //  
+                $vnpSecureHash =   hash_hmac('sha512', $hashdata, $vnp_HashSecret); //
                 $vnp_Url .= 'vnp_SecureHash=' . $vnpSecureHash;
             }
             $data = [
@@ -151,7 +155,7 @@ class VnpayController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef) 
+    //POST api/pay/vnpay/send (key: vnp_TransactionStatus, vnp_TxnRef)
     public function send(Request $request)
     {
         DB::beginTransaction();
@@ -183,9 +187,74 @@ class VnpayController extends Controller
                 $transaction = new Transaction();
                 $transaction->booking_id = $request->vnp_TxnRef;
                 $transaction->subtotal = $booking->subtotal;
-                $transaction->payment_method = 'Momo';
+                $transaction->payment_method = 'Vnpay';
                 $transaction->status = 'Đã thanh toán';
                 $transaction->save();
+                $seatIds = Ticket::where('booking_id', $request->vnp_TxnRef)->pluck('seat_id')->toArray();
+                $seats = Seat::whereIn('id', $seatIds)->get();
+                $seatDetails = $seats->mapWithKeys(function ($seat) {
+                    return [
+                        $seat->seat_number => [
+                            'seat_price' => $seat->seatType->price ?? 0,
+                            'seat_type_name' => $seat->seatType->name ?? ''
+                        ]
+                    ];
+                });
+                $seatTypeName = $seats->first()->seatType->name ?? '';
+                $serviceIds = BookingService::where('booking_id', $request->vnp_TxnRef)->pluck('service_id');
+                $services = Service::whereIn('id', $serviceIds)->get();
+                $serviceDetails = [];
+                $bookingServices = BookingService::where('booking_id', $request->vnp_TxnRef)->get();
+                foreach ($bookingServices as $bookingService) {
+                    $service = $services->firstWhere('id', $bookingService->service_id);
+                    if ($service) {
+                        $serviceDetails[$service->name] = [
+                            'quantity' => $bookingService->quantity,
+                            'price' => $bookingService->subtotal / $bookingService->quantity,
+                            'total' => $bookingService->subtotal,
+                        ];
+                    }
+                }
+                $totalServicePrice = $bookingServices->sum('subtotal');
+                $seats = Ticket::where('booking_id', $request->vnp_TxnRef)->pluck('seat_id')->toArray();
+                $seatShowtimes = SeatShowtime::with('seat.seatType')
+                    ->whereIn('seat_id', $seats)
+                    ->get();
+                $showtime = $booking->showtime;
+                $showDate = Carbon::parse($showtime->show_date)->dayOfWeek;
+                // Lấy giá ghế với điều kiện ngày cuối tuần
+                $seatPrice = $seatShowtimes->first()->seat->seatType->price ?? 0;
+                $seatPrice = ($showDate === Carbon::SATURDAY || $showDate === Carbon::SUNDAY)
+                    ? ($seatShowtimes->first()->seat->seatType->promotion_price ?? $seatPrice)
+                    : $seatPrice;
+
+                $seatPrice = $seatShowtimes->isEmpty() ? 0 : $seatPrice;
+                $numberOfSeats = count($seats);
+                $seatPrice = floatval($seatPrice);
+                $seatDetails = [
+                    'seat_numbers' => $seatDetails->keys(),
+                    'seat_ids' => $seats,
+                    'seat_price' => $seatPrice,
+                    'price' => $numberOfSeats * $seatPrice,
+                    'services' => $serviceDetails,
+                    'total_service_price' => $totalServicePrice,
+                    'seat_types' => $seatTypeName
+                ];
+                // Gửi email xác nhận
+                $barcodeUrl = $booking->code;
+                $cinema = $booking->showtime->cinemaScreen->cinema;
+                $showDate = $booking->showtime->show_date;
+                $showTime = $booking->showtime->show_time;
+                $totalAmount = $booking->subtotal;
+                Mail::to($booking->user->email)->send(new BookingConfirmationMail(
+                    $booking,
+                    $barcodeUrl,
+                    $cinema,
+                    $showDate,
+                    $showTime,
+                    $seatDetails,
+                    $totalAmount
+                ));
                 DB::commit();
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } elseif ($request->vnp_TransactionStatus == 02) {

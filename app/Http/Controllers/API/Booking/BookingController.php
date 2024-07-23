@@ -68,8 +68,17 @@ class BookingController extends Controller
             $ticketSubtotal = ($booking->subtotal) - $total;
             $data['ticket'] = [
                 'quantity' => $quantity,
-                'subtotal' => $ticketSubtotal
+                'subtotal' => $ticketSubtotal *  $quantity
             ];
+            $seats = $tickets->map(function ($ticket) {
+                return [
+                    'seat_number' => $ticket->seat->seat_number,
+                    'seat_type' => $ticket->seat->seatType->name,
+                ];
+            });
+
+            // Add seats information to the response data
+            $data['seats'] = $seats;
 
             return ApiResponse(true, $data, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {

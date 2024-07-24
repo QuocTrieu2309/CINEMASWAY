@@ -46,6 +46,9 @@ class VnpayController extends Controller
                 'folder' => 'Booking'
             ])->getSecurePath();
             unlink($tempBarcodePath);
+            do {
+                $ticketCode = random_int(1000000000000, 9999999999999);
+            } while (Booking::where('ticket_code', $ticketCode)->exists());
             $totalSubtotal = 0;
             // Tính tổng tiền vé
             $totalSubtotal += $request->subtotal;
@@ -53,6 +56,7 @@ class VnpayController extends Controller
                 'user_id' => $user->id,
                 'showtime_id' => $request->showtime_id,
                 'code' => $uploadedFileUrl,
+                'ticket_code' => $ticketCode,
                 'quantity' => count($request->seats),
                 'subtotal' => $request->subtotal,
                 'status' => Booking::STATUS_UNPAID,

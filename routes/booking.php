@@ -12,4 +12,8 @@ Route::group(['prefix' => 'dashboard/booking'], function () {
     Route::put('/update/{id}', [BookingController::class, 'update']);
     //  Delete booking  Route
     Route::delete('/delete/{id}', [BookingController::class, 'destroy']);
+    // xác nhận booking bên admin
+    Route::post('/verify-booking', [BookingController::class, 'verifyBooking']);
+
+
 });

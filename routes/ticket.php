@@ -14,4 +14,7 @@ Route::group(['prefix' => 'dashboard/ticket'], function () {
     Route::put('/update/{id}', [TicketController::class, 'update']);
     //  Delete Ticket Route
     Route::delete('/delete/{id}', [TicketController::class, 'destroy']);
+    // print 'Ticket
+    Route::get('/print-ticket/{bookingId}', [TicketController::class, 'printTicket']);
+
 });

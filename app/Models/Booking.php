@@ -20,6 +20,7 @@ class Booking extends Model
         'quantity',
         'subtotal',
         'status',
+        'ticket_code',
     ];
     protected $hidden = [
         'created_by',

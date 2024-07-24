@@ -16,10 +16,7 @@
         <div style="padding: 10px; border: 1px solid #ddd; margin-bottom: 20px;">
             <h2 style="margin: 0 0 10px; text-align: center; color: #333;">THÔNG TIN VÉ</h2>
             <table style="width: 100%; border-collapse: separate; margin-top: 20px;">
-                <tr>
-                    <th style="padding: 10px; text-align: center; background-color: #f0f0f0; font-weight: bold; border: 1px solid #ddd;">Mã vé:</th>
-                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ $booking->id }}</td>
-                </tr>
+
                 <tr>
                     <th style="padding: 10px; text-align: center; background-color: #f0f0f0; font-weight: bold; border: 1px solid #ddd;">Tên phim:</th>
                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ $booking->showtime->movie->title }}</td>
@@ -93,6 +90,7 @@
             <div style="padding: 5px; text-align: center; width: 95%; padding-left: 2%;">
             <div style="text-align: center; margin-bottom: 20px;">
                     <img style="width: 50%; height: 50px;" src="{{ $barcodeUrl }}" alt="Booking Barcode">
+                    <p style="padding:3px; text-align: center;">{{ $booking->ticket_code }}</p>
                  </div>
                 <p style="text-align: center; margin: 5px 0;">Vui lòng đưa mã số này đến quầy vé CinemaGO để nhận vé của bạn<br>*Lưu ý: Vui lòng sử dụng loại vé đúng với độ tuổi theo quy định của CinemaGO. Chi tiết xem <a href="#">tại đây!</a></p>
             </div>

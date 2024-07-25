@@ -54,11 +54,16 @@ class ShowtimeController extends Controller
                 ->where('show_date', $request->show_date)
                 ->orderBy('show_time')
                 ->get();
+            $movie = Movie::where('id', $request->movie_id)->first();
             $canCreate = true;
+            $showtimeNow = null;
             foreach ($existingShowtimes as $existingShowtime) {
                 $existingStart = Carbon::parse($existingShowtime->show_time);
                 $existingEnd = $existingStart->copy()->addMinutes($existingShowtime->movie->duration);
-                if ($existingEnd->diffInMinutes($showTime, false) < 30) {
+                $checkStart = $existingStart->copy()->subMinutes($movie->duration)->subMinutes(30);
+                $checkEnd = $existingEnd->copy()->addMinutes(30);
+                if ($showTime->between($checkStart, $checkEnd)) {
+                    $showtimeNow = $existingStart->copy()->format("H:i");
                     $canCreate = false;
                     break;
                 }
@@ -88,7 +93,8 @@ class ShowtimeController extends Controller
 
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } else {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Suất chiếu mới phải cách ít nhất 1 giờ so với các suất chiếu khác.');
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Xuất chiếu đã tồn tại vào " . $showtimeNow .
+                    ", xuất chiếu tiếp theo không nằm trong khoảng từ " . $checkStart->format("H:i") . " đến " . $checkEnd->format("H:i"));
             }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

@@ -97,9 +97,13 @@ class ChooseSeatController extends Controller
                             'id' => $seat->id,
                             'seat_number' => $seat->seat_number,
                             'type' => $seat->seatType->name,
-                            'price' => ($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
-                            ? $seat->seatType->promotion_price
-                            : $seat->seatType->price,
+                            'price' => ($showtime->status === Showtime::STATUS_EARLY)
+                                ? (($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
+                                    ? $seat->seatType->promotion_price*1.5
+                                    : $seat->seatType->price*1.5)
+                                : (($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
+                                    ? $seat->seatType->promotion_price
+                                    : $seat->seatType->price),
                             'status' => $status,
                         ];
                     }

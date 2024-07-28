@@ -85,7 +85,7 @@ class VnpayController extends Controller
                     DB::rollBack();
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Dịch vụ ' . $serviceModel->name . ' không đủ số lượng để đáp ứng. Vui lòng giảm số lượng dịch vụ!');
                 }
-                $totalSubtotal += $service['subtotal'];
+                // $totalSubtotal += $service['subtotal'];
                 $bookingService = BookingService::create([
                     'booking_id' => $booking->id,
                     'service_id' => $service['service_id'],
@@ -99,7 +99,7 @@ class VnpayController extends Controller
                 $serviceModel->decrement('quantity', $service['quantity']);
             }
             // Cập nhật tổng tiền booking
-            $booking->subtotal = $totalSubtotal;
+            // $booking->subtotal = $totalSubtotal;
             $booking->save();
             $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
             $vnp_Returnurl = $request->url . "/VNPAY";

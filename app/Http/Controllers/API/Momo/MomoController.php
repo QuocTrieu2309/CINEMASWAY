@@ -11,6 +11,7 @@ use App\Models\BookingService;
 use App\Models\Seat;
 use App\Models\SeatShowtime;
 use App\Models\Service;
+use App\Models\Showtime;
 use App\Models\Ticket;
 use App\Models\Transaction;
 use Carbon\Carbon;
@@ -274,7 +275,9 @@ class MomoController extends Controller
                 $seatPrice = ($showDate === Carbon::SATURDAY || $showDate === Carbon::SUNDAY)
                     ? ($seatShowtimes->first()->seat->seatType->promotion_price ?? $seatPrice)
                     : $seatPrice;
-
+                    if ($showtime->status === Showtime::STATUS_EARLY) {
+                        $seatPrice *= 1.5;
+                    }
                 $seatPrice = $seatShowtimes->isEmpty() ? 0 : $seatPrice;
                 $numberOfSeats = count($seats);
                 $seatPrice = floatval($seatPrice);

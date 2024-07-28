@@ -8,6 +8,7 @@ use App\Models\Ticket;
 use App\Http\Resources\API\Ticket\TicketResource;
 use App\Http\Requests\API\Ticket\TicketRequest;
 use App\Models\Booking;
+use App\Models\Showtime;
 use Carbon\Carbon;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -142,15 +143,21 @@ class TicketController extends Controller
             $tickets = $booking->tickets->map(function ($ticket) use ($booking) {
                 $showDate = Carbon::parse($booking->showtime->show_date);
             $isWeekend = $showDate->isWeekend();
+            $isEarlyShowtime = $booking->showtime->status === Showtime::STATUS_EARLY;
+            // Tính giá vé
+            $price = $isWeekend ? $ticket->seat->seatType->promotion_price : $ticket->seat->seatType->price;
+            if ($isEarlyShowtime) {
+                $price *= 1.5;
+            }
                 return [
-                    'code' =>$booking->code,
+                    'code' => $booking->code,
                     'movie_name' => $booking->showtime->movie->title,
                     'cinema' => $booking->showtime->cinemaScreen->cinema->name,
                     'screen' => $booking->showtime->cinemaScreen->screen->name,
                     'show_time' => $booking->showtime->show_time,
                     'show_date' => $booking->showtime->show_date,
                     'seat_number' => $ticket->seat->seat_number,
-                    'price' => $isWeekend ? $ticket->seat->seatType->promotion_price : $ticket->seat->seatType->price,
+                    'price' => $price,
                 ];
             });
             $mpdf = new Mpdf();

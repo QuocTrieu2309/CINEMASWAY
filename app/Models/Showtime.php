@@ -19,6 +19,8 @@ class Showtime extends Model
     const STATUS_SOLD_OUT = 'Bán hết';
     const STATUS_AVAILABLE = 'Còn chỗ';
     const STATUS_COMPLETED = 'Kết thúc';
+
+    const STATUS_EARLY = 'Suất chiếu sớm';
     protected $fillable = [
         'movie_id',
         'cinema_screen_id',

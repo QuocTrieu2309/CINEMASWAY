@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use App\Models\Movie;
 use App\Models\Seat;
 use App\Models\SeatShowtime;
+use DateInterval;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
@@ -73,7 +74,11 @@ class ShowtimeController extends Controller
                 if (count($result) == 0) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Phòng chiếu chưa có ghế");
                 }
-                $showtime = Showtime::create($request->all());
+                $showtimeData = $request->all();
+                if (Carbon::parse($request->show_date)->lt($movie->release_date)) {
+                    $showtimeData['status'] = Showtime::STATUS_EARLY;
+                }
+                $showtime = Showtime::create($showtimeData);
                 if (!$showtime) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Tạo suất chiếu chưa thành công");
                 }
@@ -186,13 +191,24 @@ class ShowtimeController extends Controller
             DB::beginTransaction();
             $showtime = Showtime::where('id', $id)->where('deleted', 0)->first();
             empty($showtime) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $hasRelatedRecords = $showtime->movie()->exits()
-                || $showtime->cinemaScreen()->exits()
-                || $showtime->seatShowtime()->exits()
-                || $showtime->bookings();
+            $currentDate = Carbon::now()->toDate();
+            $date = $showtime->show_date;
+            $time = $showtime->show_time;
+            $dateTime = Carbon::parse($date . ' ' . $time)->toDate();
+            $dateTimeAdd5Hours = clone $dateTime;
+            $dateTimeAdd5Hours->add(new DateInterval('PT5H'));
+            $hasRelatedRecords = $showtime->movie()->exists()
+                || $showtime->cinemaScreen()->exists()
+                || $showtime->seatShowtime()->exists()
+                || $showtime->bookings()->exists();
             if ($hasRelatedRecords) {
-                $showtime->deleted = 1;
-                $showtime->save();
+                if ($currentDate > $dateTimeAdd5Hours) {
+                    $showtime->deleted = 1;
+                    $showtime->save();
+                } else {
+                    DB::rollBack();
+                    return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không thể xóa xuất chiếu đang hoạt động');
+                }
             } else {
                 $showtime->delete();
             }

@@ -55,19 +55,22 @@ class ShowtimeController extends Controller
                 ->where('show_date', $request->show_date)
                 ->orderBy('show_time')
                 ->get();
-            $movie = Movie::where('id', $request->movie_id)->first();
+            $startOfDay = Carbon::parse($request->show_date)->setTime(0, 0, 0);
+            $endOfRange = Carbon::parse($request->show_date)->setTime(7, 0, 0);
+            if (
+                Carbon::parse($request->show_date . " " . $showTime->format("H:i:s")) >= $startOfDay &&
+                Carbon::parse($request->show_date . " " . $showTime->format("H:i:s")) < $endOfRange
+            ) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Rạp phim bắt đầu mở cửa từ 07:00, thời gian từ 00:00 đến 06:59 không thể thêm suất chiếu");
+            }
+            if (count($existingShowtimes) <= 0 && $showTime != Carbon::parse("07:00:00")) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Ngày " . $request->show_date . " chưa có suất chiếu nào, suất chiếu đầu tiên phải bắt đầu từ 07:00");
+            }
+            $lastShowTime = $existingShowtimes[count($existingShowtimes) - 1];
+            $checkEnd = Carbon::parse($lastShowTime->show_time)->addMinutes($lastShowTime->movie->duration)->addMinutes(30)->format("H:i:s");
             $canCreate = true;
-            $showtimeNow = null;
-            foreach ($existingShowtimes as $existingShowtime) {
-                $existingStart = Carbon::parse($existingShowtime->show_time);
-                $existingEnd = $existingStart->copy()->addMinutes($existingShowtime->movie->duration);
-                $checkStart = $existingStart->copy()->subMinutes($movie->duration)->subMinutes(30);
-                $checkEnd = $existingEnd->copy()->addMinutes(30);
-                if ($showTime->between($checkStart, $checkEnd)) {
-                    $showtimeNow = $existingStart->copy()->format("H:i");
-                    $canCreate = false;
-                    break;
-                }
+            if ($showTime != Carbon::parse($checkEnd)) {
+                $canCreate = false;
             }
             if ($canCreate) {
                 $result = Seat::where('cinema_screen_id', $request->cinema_screen_id)->where('status', Seat::STATUS_OCCUPIED)->get();
@@ -95,11 +98,10 @@ class ShowtimeController extends Controller
                         }
                     }
                 }
-
                 return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
             } else {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Xuất chiếu đã tồn tại vào " . $showtimeNow .
-                    ", xuất chiếu tiếp theo không nằm trong khoảng từ " . $checkStart->format("H:i") . " đến " . $checkEnd->format("H:i"));
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Xuất chiếu cuối hiện tại vào " . Carbon::parse($lastShowTime->show_time)->format("H:i") .
+                    ", xuất chiếu tiếp theo được thêm là " . Carbon::parse($checkEnd)->format("H:i"));
             }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

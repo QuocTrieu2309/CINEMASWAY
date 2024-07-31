@@ -51,6 +51,10 @@ class ShowtimeController extends Controller
         try {
             $this->authorize('checkPermission', Showtime::class);
             $showTime = Carbon::parse($request->show_time);
+            $movie = Movie::where('id', $request->movie_id)->first();
+            if (!$movie) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Không tồn tại phim này");
+            }
             $existingShowtimes = Showtime::where('cinema_screen_id', $request->cinema_screen_id)
                 ->where('show_date', $request->show_date)
                 ->orderBy('show_time')
@@ -66,11 +70,13 @@ class ShowtimeController extends Controller
             if (count($existingShowtimes) <= 0 && $showTime != Carbon::parse("07:00:00")) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Ngày " . $request->show_date . " chưa có suất chiếu nào, suất chiếu đầu tiên phải bắt đầu từ 07:00");
             }
-            $lastShowTime = $existingShowtimes[count($existingShowtimes) - 1];
-            $checkEnd = Carbon::parse($lastShowTime->show_time)->addMinutes($lastShowTime->movie->duration)->addMinutes(30)->format("H:i:s");
             $canCreate = true;
-            if ($showTime != Carbon::parse($checkEnd)) {
-                $canCreate = false;
+            if (count($existingShowtimes) > 0) {
+                $lastShowTime = $existingShowtimes[count($existingShowtimes) - 1];
+                $checkEnd = Carbon::parse($lastShowTime->show_time)->addMinutes($lastShowTime->movie->duration)->addMinutes(30)->format("H:i:s");
+                if ($showTime != Carbon::parse($checkEnd)) {
+                    $canCreate = false;
+                }
             }
             if ($canCreate) {
                 $result = Seat::where('cinema_screen_id', $request->cinema_screen_id)->where('status', Seat::STATUS_OCCUPIED)->get();

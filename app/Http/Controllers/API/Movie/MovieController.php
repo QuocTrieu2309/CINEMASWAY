@@ -10,6 +10,7 @@ use App\Http\Requests\API\Movie\MovieRequest;
 use App\Http\Resources\API\Movie\MovieResource;
 use Illuminate\Support\Facades\Config;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Support\Facades\DB;
 
 class MovieController extends Controller
 {
@@ -63,7 +64,6 @@ class MovieController extends Controller
         try {
             $this->authorize('checkPermission', Movie::class);
             $data = $request->all();
-            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
             $movie = Movie::create($data);
             if (!$movie) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
@@ -83,8 +83,14 @@ class MovieController extends Controller
             if (!$movie) {
                 return ApiResponse(false, null, Response::HTTP_NOT_FOUND, messageResponseNotFound());
             }
+            $currentDate = now()->toDateString();
+            $hasUpcomingShowtimes = $movie->showtimes()->where('show_date', '>=', $currentDate)
+                ->where('deleted', 0)
+                ->exists();
+            if ($hasUpcomingShowtimes) {
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể cập nhật phim khi phim vẫn còn xuất chiếu.");
+            }
             $data = $request->all();
-            $data['trailer'] = "https://www.youtube.com/embed/E5ONTXHS2mM?si=Emt0gL2gsgAtbJV1";
             $cridential = $movie->update($data);
             if (!$cridential) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
@@ -100,12 +106,27 @@ class MovieController extends Controller
     {
         try {
             $this->authorize('delete', Movie::class);
+            DB::beginTransaction();
             $movie = Movie::where('id', $id)->where('deleted', 0)->first();
             empty($movie) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $movie->deleted = 1;
-            $movie->save();
+            $currentDate = now()->toDateString();
+            $hasUpcomingShowtimes = $movie->showtimes()->where('show_date', '>=', $currentDate)
+                ->where('deleted', 0)
+                ->exists();
+            if ($hasUpcomingShowtimes) {
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể xóa phim khi phim vẫn còn xuất chiếu.");
+            }
+            $hasRelatedRecords = $movie->showtimes()->exists();
+            if ($hasRelatedRecords) {
+                $movie->deleted = 1;
+                $movie->save();
+            } else {
+                $movie->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

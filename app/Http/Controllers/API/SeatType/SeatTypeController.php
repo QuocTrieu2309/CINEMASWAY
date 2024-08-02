@@ -9,6 +9,7 @@ use App\Http\Resources\API\SeatType\SeatTypeResource;
 use App\Http\Requests\API\SeatType\SeatTypeRequest;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class SeatTypeController extends Controller
 {
@@ -114,13 +115,22 @@ class SeatTypeController extends Controller
     public function destroy(string $id)
     {
         try {
+            DB::beginTransaction();
             $this->authorize('delete', SeatType::class);
             $seatType = SeatType::where('id', $id)->where('deleted', 0)->first();
             empty($seatType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $seatType->deleted = 1;
-            $seatType->save();
+            $hasRelatedRecords = $seatType->seats()->exists() || $seatType->screen()->exists();
+            if ($hasRelatedRecords) {
+                $seatType->deleted = 1;
+                $seatType->save();
+            } else {
+                $seatType->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

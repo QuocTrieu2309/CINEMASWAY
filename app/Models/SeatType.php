@@ -32,4 +32,7 @@ class SeatType extends Model
     public function seats(){
         return $this->hasMany(Seat::class);
     }
+    public function screen() {
+        return $this->belongsTo(Screen::class);
+    }
 }

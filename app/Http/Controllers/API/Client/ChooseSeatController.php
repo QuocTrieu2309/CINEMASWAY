@@ -9,6 +9,7 @@ use App\Models\SeatMap;
 use App\Models\SeatShowtime;
 use App\Models\Service;
 use App\Models\Showtime;
+use Carbon\Carbon;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -46,9 +47,13 @@ class ChooseSeatController extends Controller
         }
         try {
             $user_id = auth('sanctum')->user()->id;
+            $currentDateTime = Carbon::now('Asia/Ho_Chi_Minh');
             $showtime = Showtime::with('cinemaScreen.seatMaps', 'cinemaScreen.seats.seatType', 'cinemaScreen.seats.seatShowtime')
                 ->findOrFail($showtime_id);
             $cinemaScreen = $showtime->cinemaScreen;
+            $showDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $showtime->show_date . ' ' . $showtime->show_time,'Asia/Ho_Chi_Minh');
+            $numberOfShowDate = $showDateTime->dayOfWeek;
+
             if (!$cinemaScreen) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Không tìm thấy Cinema Screen');
             }
@@ -92,7 +97,13 @@ class ChooseSeatController extends Controller
                             'id' => $seat->id,
                             'seat_number' => $seat->seat_number,
                             'type' => $seat->seatType->name,
-                            'price' => $seat->seatType->price,
+                            'price' => ($showtime->status === Showtime::STATUS_EARLY)
+                                ? (($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
+                                    ? $seat->seatType->promotion_price*1.5
+                                    : $seat->seatType->price*1.5)
+                                : (($numberOfShowDate === Carbon::SATURDAY || $numberOfShowDate === Carbon::SUNDAY)
+                                    ? $seat->seatType->promotion_price
+                                    : $seat->seatType->price),
                             'status' => $status,
                         ];
                     }
@@ -143,8 +154,11 @@ class ChooseSeatController extends Controller
                 'screen' => $showtime->cinemaScreen->screen->name,
                 'seats' => $detail,
             ];
-
-            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+            if($currentDateTime->lessThan($showDateTime)) {
+                return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, 'Suất chiếu đã hết hạn.');
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -177,7 +191,9 @@ class ChooseSeatController extends Controller
      */
     private function getSeatShowtimeStatus($seatShowtime, $user_id)
     {
-        if ($seatShowtime->user_id !== null && $seatShowtime->user_id !== $user_id) {
+        if ($seatShowtime->status === SeatShowtime::STATUS_RESERVED) {
+            return SeatShowtime::STATUS_RESERVED;
+        } elseif ($seatShowtime->user_id !== null && $seatShowtime->user_id !== $user_id) {
             return SeatShowtime::STATUS_HELD;
         } elseif ($seatShowtime->user_id === $user_id) {
             return SeatShowtime::STATUS_SELECTED;
@@ -214,8 +230,8 @@ class ChooseSeatController extends Controller
         try {
             $user_id = auth('sanctum')->user()->id;
             $seatShowtime = SeatShowtime::where('seat_id', $request->id)
-            ->where('showtime_id', $request->showtime_id)
-            ->first();
+                ->where('showtime_id', $request->showtime_id)
+                ->first();
             if (!$seatShowtime) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Seat not found');
             }
@@ -242,37 +258,49 @@ class ChooseSeatController extends Controller
      * @throws BindingResolutionException
      *
      * POST api/cancel
-     * truyền vào params id : seat_id, showtime_id
+     * truyền vào params seat_ids (mảng seat_id), showtime_id
      */
     public function cancel(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id' => 'required|exists:seats,id',
-            'showtime_id' => 'required|exists:seat_showtimes,id',
+            'seat_ids' => 'required',
+            'seat_ids.*' => 'required|exists:seats,id',
+            'showtime_id' => 'required|exists:showtimes,id',
         ], [
-            'id.required' => 'Vui lòng cung cấp ID của ghế.',
-            'id.exists' => 'ID của ghế không hợp lệ.',
+            'seat_ids.required' => 'Vui lòng cung cấp ID của các ghế.',
+            'seat_ids.array' => 'Các ID của ghế phải là một mảng.',
+            'seat_ids.*.required' => 'Vui lòng cung cấp ID của ghế.',
+            'seat_ids.*.exists' => 'ID của ghế không hợp lệ.',
             'showtime_id.required' => 'Vui lòng cung cấp ID của suất chiếu.',
             'showtime_id.exists' => 'ID của suất chiếu không hợp lệ.',
         ]);
+
         if ($validator->fails()) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $validator->errors());
         }
+
         DB::beginTransaction();
         try {
             $user_id = auth('sanctum')->user()->id;
-            $seatShowtime = SeatShowtime::where('seat_id', $request->id)
-            ->where('showtime_id', $request->showtime_id)
-            ->first();
-            if (!$seatShowtime) {
-                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Seat not found');
+            $seat_ids = $request->seat_ids;
+            $seatShowtimes = SeatShowtime::whereIn('seat_id', $seat_ids)
+                ->where('showtime_id', $request->showtime_id)
+                ->get();
+
+            if ($seatShowtimes->isEmpty() || $seatShowtimes->count() != count($seat_ids)) {
+                DB::rollBack();
+                return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'One or more seats not found');
             }
-            if ($seatShowtime->user_id !== $user_id) {
-                return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Unauthorized action.');
+
+            foreach ($seatShowtimes as $seatShowtime) {
+                if ($seatShowtime->user_id !== $user_id) {
+                    DB::rollBack();
+                    return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Unauthorized action.');
+                }
             }
-            $seatShowtime->update([
-                'user_id' => null
-            ]);
+            SeatShowtime::whereIn('id', $seatShowtimes->pluck('id'))
+                ->update(['user_id' => null]);
+
             DB::commit();
 
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
@@ -282,9 +310,9 @@ class ChooseSeatController extends Controller
         }
     }
 
-
     //get All service
-    public function getService(){
+    public function getService()
+    {
         try {
             $services = Service::where('deleted', 0)->get();
             $data = ServiceResource::collection($services);
@@ -292,6 +320,5 @@ class ChooseSeatController extends Controller
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
-    }    
-
+    }
 }

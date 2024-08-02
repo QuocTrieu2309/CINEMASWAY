@@ -69,21 +69,32 @@ class FilterController extends Controller
     {
         try {
             $movieExists = Showtime::where('movie_id', $id)->exists();
-        if (!$movieExists) {
-            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có phim nào ');
-        }
+            if (!$movieExists) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có phim nào');
+            }
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
+            $currentDateTime = now();
             $query = Showtime::query();
             $query->where('deleted', 0);
             $query->where('movie_id', $id);
+            $query->where(function($q) use ($currentDateTime) {
+                $q->where('show_date', '>', $currentDateTime->format('Y-m-d'))
+                  ->orWhere(function($q) use ($currentDateTime) {
+                      $q->where('show_date', $currentDateTime->format('Y-m-d'))
+                        ->where('show_time', '>', $currentDateTime->format('H:i:s'));
+                  });
+            });
+
             $data = $query->with('cinemaScreen.cinema', 'movie', 'cinemaScreen.screen')
                 ->orderBy($this->sort, $this->order)
                 ->paginate($this->limit);
+
             if ($data->isEmpty()) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không có xuất chiếu nào');
             }
+
             $list = $data->map(function ($showtime) {
                 return [
                     'cinema_city' => $showtime->cinemaScreen->cinema->city,
@@ -98,6 +109,7 @@ class FilterController extends Controller
                     'status' => $showtime->status,
                 ];
             });
+
             $result = [
                 'movies' => $list,
                 'meta' => [
@@ -107,11 +119,13 @@ class FilterController extends Controller
                     'lastPage' => $data->lastPage(),
                 ],
             ];
+
             return ApiResponse(true, $result, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
     //filter Movie city , date , cinemaName
     public function filterMovie(Request $request)
     {

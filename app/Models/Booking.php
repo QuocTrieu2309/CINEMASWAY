@@ -20,6 +20,7 @@ class Booking extends Model
         'quantity',
         'subtotal',
         'status',
+        'ticket_code',
     ];
     protected $hidden = [
         'created_by',
@@ -28,12 +29,12 @@ class Booking extends Model
         'created_at',
         'updated_at',
     ];
-  
+
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-  
+
     public function showtime()
     {
         return $this->belongsTo(Showtime::class);
@@ -45,5 +46,9 @@ class Booking extends Model
     public function bookingServices()
     {
         return $this->hasMany(BookingService::class);
+    }
+    public function tickets()
+    {
+        return $this->hasMany(Ticket::class);
     }
 }

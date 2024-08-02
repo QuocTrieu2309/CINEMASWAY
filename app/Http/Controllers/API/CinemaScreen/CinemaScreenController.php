@@ -6,9 +6,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\CinemaScreen\CinemaScreenRequest;
 use App\Http\Resources\API\CinemaScreen\CinemaScreenResource;
 use App\Models\CinemaScreen;
+use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class CinemaScreenController extends Controller
 {
@@ -106,12 +108,23 @@ class CinemaScreenController extends Controller
     {
         try {
             $this->authorize('delete', CinemaScreen::class);
+            DB::beginTransaction();
             $CinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
             empty($CinemaScreen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $CinemaScreen->deleted = 1;
-            $CinemaScreen->save();
+            $hasRelatedRecords = $CinemaScreen->seatMaps()->exists() ||
+                $CinemaScreen->seats()->exists() ||
+                $CinemaScreen->showtimes()->exists();
+            if ($hasRelatedRecords) {
+                $CinemaScreen->deleted = 1;
+                $CinemaScreen->save();
+            } else {
+                $CinemaScreen->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollback();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

@@ -9,6 +9,7 @@ use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -40,7 +41,7 @@ class RoleController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    
+
     // GET /api/translation/{id}
     public function show($id)
     {
@@ -100,12 +101,20 @@ class RoleController extends Controller
     {
         try {
             $this->authorize('delete', Role::class);
+            DB::beginTransaction();
             $role = Role::where('id', $id)->where('deleted', 0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $role->deleted = 1;
-            $role->save();
+            $hasRelatedRecords =  $role->users()->exists();
+            if ($hasRelatedRecords) {
+                $role->deleted = 1;
+                $role->save();
+            } else {
+                $role->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }

@@ -34,4 +34,8 @@ class Seat extends Model
     {
         return $this->hasOne(SeatShowtime::class);
     }
+        public function ticket()
+    {
+        return $this->hasOne(Ticket::class);
+    }
 }

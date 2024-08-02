@@ -21,4 +21,8 @@ class Screen extends Model
     public function cinemaScreens(){
         return $this->hasMany(CinemaScreen::class);
     }
+
+    public function seatTypes(){
+        return $this->hasMany(SeatType::class);
+    }
 }

@@ -61,7 +61,8 @@ class ShowtimeRequest extends FormRequest
                                 'required',
                                 'date_format:H:i:s',
                                 function ($attribute, $value, $fail) {
-                                    if (Carbon::parse($value) < Carbon::now()->format('H:i:s')) {
+                                    $show_date=$this->input('show_date');
+                                    if (Carbon::parse($show_date.' '.$value) < Carbon::now()) {
                                         $fail($attribute.' phải sau hoặc bằng thời gian hiện tại.');
                                     }
                                 },

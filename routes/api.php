@@ -51,6 +51,13 @@ require_once __DIR__ . '/momo.php';
 require_once __DIR__ . '/vnpay.php';
 //Transaction route
 require_once __DIR__ . '/transaction.php';
+//Movie_client route
+require_once __DIR__ . '/movie_client.php';
+// Statistic route
+require_once __DIR__ . '/statistic.php';
+
+
+
 
 
 

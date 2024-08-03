@@ -69,7 +69,7 @@ class BookingController extends Controller
             $ticketSubtotal = ($booking->subtotal) - $total;
             $data['ticket'] = [
                 'quantity' => $quantity,
-                'subtotal' => $ticketSubtotal *  $quantity
+                'subtotal' => $ticketSubtotal,
             ];
             $seats = $tickets->map(function ($ticket) {
                 return [
@@ -147,7 +147,7 @@ class BookingController extends Controller
             $ticketSubtotal = $booking->subtotal - $total;
             $data['ticket'] = [
                 'quantity' => $quantity,
-                'subtotal' => $ticketSubtotal * $quantity
+                'subtotal' => $ticketSubtotal,
             ];
             $seats = $tickets->map(function ($ticket) {
                 return [

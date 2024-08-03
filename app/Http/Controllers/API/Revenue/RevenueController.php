@@ -54,14 +54,15 @@ class RevenueController extends Controller
                                 ];
                             }
                             $ticketRevenue = 0;
-                            foreach ($booking->tickets as $ticket) {
-                                $seatType = $ticket->seat->seatType;
-                                $isWeekend = Carbon::parse($date)->isWeekend();
-                                $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
-                                $isEarlyStatus = $showtime->status === 'STATUS_EARLY';
-                                $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
-                                $ticketRevenue += $price;
-                            }
+                        foreach ($booking->tickets as $ticket) {
+                            $seatType = $ticket->seat->seatType;
+                            $isWeekend = Carbon::parse($showtime->show_date)->isWeekend();
+                            $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
+                            // Kiểm tra trạng thái showtime
+                            $isEarlyStatus = $showtime->status === Showtime::STATUS_EARLY;
+                            $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
+                            $ticketRevenue += $price;
+                        }
                             $dailyData[$date]['doanh_thu']['tickets']['ticket_revenue'] += $ticketRevenue;
                             $dailyData[$date]['doanh_thu']['tickets']['ticket_quantity'] += $booking->quantity;
                             foreach ($booking->bookingServices as $bookingService) {
@@ -183,11 +184,10 @@ class RevenueController extends Controller
                         $ticketRevenue = 0;
                         foreach ($booking->tickets as $ticket) {
                             $seatType = $ticket->seat->seatType;
-                            // Kiểm tra nếu là thứ Bảy hoặc Chủ Nhật để áp dụng giá khuyến mại
-                            $isWeekend = Carbon::parse($date)->isWeekend();
+                            $isWeekend = Carbon::parse($showtime->show_date)->isWeekend();
                             $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
                             // Kiểm tra trạng thái showtime
-                            $isEarlyStatus = $showtime->status === 'STATUS_EARLY';
+                            $isEarlyStatus = $showtime->status === Showtime::STATUS_EARLY;
                             $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
                             $ticketRevenue += $price;
                         }

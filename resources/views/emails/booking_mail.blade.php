@@ -80,9 +80,7 @@
                 <tfoot>
                     <tr>
                         <td colspan="4" style="padding: 10px; text-align: center; border-left: none !important; border-right: none !important; border-bottom: none !important; font-weight: bold;">
-                            Thanh Toán:{{ number_format($totalAmount, 0, ',', '.') }} VND
-                            VND
-                        </td>
+                            Thanh Toán:{{ number_format($totalAmount, 0, ',', '.') }} VND                        </td>
                     </tr>
                 </tfoot>
             </table>

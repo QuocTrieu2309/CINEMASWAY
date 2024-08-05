@@ -25,8 +25,20 @@ class RevenueController extends Controller
         $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), 'date');
         $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), 'desc');
         try {
-            // Lấy tất cả các rạp
-            $cinemas = Cinema::with(['cinemaScreens.showtimes.bookings.bookingServices.service'])->get();
+            $cinemas = Cinema::with([
+                'cinemaScreens.showtimes' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings.bookingServices.service' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings.tickets.seat.seatType' => function ($query) {
+                    $query->where('deleted', 0);
+                }
+            ])->where('deleted', 0)->get();
 
             $endDate = Carbon::now();
             $startDate = $endDate->copy()->subDays(59);
@@ -152,9 +164,20 @@ class RevenueController extends Controller
         $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), 'desc');
 
         try {
-            $cinema = Cinema::with(['cinemaScreens.showtimes.bookings.bookingServices.service'])
-                ->findOrFail($cinema_id);
-
+            $cinema = Cinema::with([
+                'cinemaScreens.showtimes' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings.bookingServices.service' => function ($query) {
+                    $query->where('deleted', 0);
+                },
+                'cinemaScreens.showtimes.bookings.tickets.seat.seatType' => function ($query) {
+                    $query->where('deleted', 0);
+                }
+            ])->findOrFail($cinema_id);
             $endDate = Carbon::now();
             $startDate = $endDate->copy()->subDays(59);
 

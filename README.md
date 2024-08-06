@@ -1,3 +1,5 @@
---Clone--
+--Clone project from github--
+- composer install
+- npm install
 - php artisan migrate
 - php artisan ser (--port=)

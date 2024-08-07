@@ -83,7 +83,7 @@ class MovieRequest extends FormRequest
                             'director' => 'required|string|max:60',
                             'actor' => 'required|string|max:60',
                             'duration' => 'required|numeric|min:90',
-                            'release_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
+                            // 'release_date' => 'required|date|after_or_equal:' . \Carbon\Carbon::now()->format('Y-m-d'),
                             'end_date' =>'required|date|after:release_date',
                             'status' => [
                                 'required',

@@ -18,24 +18,29 @@ use Illuminate\Support\Facades\DB;
 
 class ShowtimeController extends Controller
 {
-    // public function __construct()
-    // {
-    //     $this->middleware('auth:sanctum');
-    // }
+    public function __construct()
+    {
+        $this->middleware('auth:sanctum');
+    }
     //GET api/dashboard/showtime
     public function index(Request $request)
     {
         try {
-            // $this->authorize('checkPermission', Showtime::class);
+            $this->authorize('checkPermission', Showtime::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Showtime::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
-            // $sortDirection = strtolower($this->order) === 'desc' ? 'asc' : 'desc';
+            $currentDataTime = now();
 
-            // $data = Showtime::where('deleted', 0)
-            //     ->orderBy($this->sort, $sortDirection)  // Sắp xếp theo thứ tự giảm dần
-            //     ->paginate($this->limit);
+            foreach($data as $dt) {
+                $showDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $dt->show_date . ' ' . $dt->show_time,'Asia/Ho_Chi_Minh')->addHour(5);
+                if($showDateTime->lt($currentDataTime)){
+                    $dt->status = Showtime::STATUS_COMPLETED;
+                    $dt->save();
+                }
+            }
+
             $result = [
                 'showtimes' => ShowtimeResource::collection($data),
                 'meta' => [
@@ -54,7 +59,7 @@ class ShowtimeController extends Controller
     public function store(ShowtimeRequest $request)
     {
         try {
-            // $this->authorize('checkPermission', Showtime::class);
+            $this->authorize('checkPermission', Showtime::class);
             $showTime = Carbon::parse($request->show_time);
             $movie = Movie::where('id', $request->movie_id)->first();
             if (!$movie) {

@@ -20,22 +20,20 @@ class MovieController extends Controller
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $today = now()->toDateString();
+
+            $query = Movie::where('deleted', 0)
+                ->where('end_date', '>=', $today)
+                ->where('status', '!=', Movie::STATUS_STOPPED);
+
             if ($request->status == 1) {
-                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_CURRENTLY)
-                ->where('end_date', '>=', $today)
-                ->orderBy($this->sort, $this->order)
-                ->paginate($this->limit);
+                $query->where('status', Movie::STATUS_CURRENTLY);
             } elseif ($request->status == 2) {
-                $data = Movie::where('deleted', 0)->where('status', Movie::STATUS_COMING)
-                ->where('end_date', '>=', $today)
-                ->orderBy($this->sort, $this->order)
-                ->paginate($this->limit);
-            } else {
-                $data = Movie::where('deleted', 0)
-                ->where('end_date', '>=', $today)
-                ->orderBy($this->sort, $this->order)
-                ->paginate($this->limit);
+                $query->where('status', Movie::STATUS_COMING);
             }
+
+            $data = $query->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
+
             $result = [
                 'movie' => MovieResource::collection($data),
                 'meta' => [
@@ -45,6 +43,7 @@ class MovieController extends Controller
                     'lastPage' => $data->lastPage(),
                 ],
             ];
+
             return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

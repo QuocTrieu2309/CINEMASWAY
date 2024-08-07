@@ -3,6 +3,7 @@
 use App\Http\Controllers\API\Client\ChooseSeatController;
 use App\Http\Controllers\API\Client\ClientController;
 use App\Http\Controllers\API\Client\FilterController;
+use App\Http\Controllers\API\Client\ListBooking;
 use Illuminate\Support\Facades\Route;
 Route::post('booking',[ClientController::class, 'updateTickets']);
 // Get city information
@@ -29,3 +30,8 @@ Route::post('/status', [ChooseSeatController::class, 'updateStatusSeat']);
 Route::post('/cancel', [ChooseSeatController::class, 'cancel']);
 //Get hiển thị danh sách service
 Route::get('/service', [ChooseSeatController::class, 'getService']);
+// Get hiển thị booking của khách hàng
+Route::get('/booking', [ListBooking::class, 'index']);
+// get chi tiết  booking của khách hàng
+Route::get('/booking/{id}', [ListBooking::class, 'show']);
+

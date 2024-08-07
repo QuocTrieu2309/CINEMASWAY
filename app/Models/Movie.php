@@ -23,6 +23,7 @@ class Movie extends Model
         'duration',
         'release_date',
         'status',
+        'is_early_showtime',
         'rated',
         'like',
         'description',

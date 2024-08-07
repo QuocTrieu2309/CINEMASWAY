@@ -31,6 +31,16 @@ class ShowtimeController extends Controller
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Showtime::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $currentDataTime = now();
+
+            foreach($data as $dt) {
+                $showDateTime = Carbon::createFromFormat('Y-m-d H:i:s', $dt->show_date . ' ' . $dt->show_time,'Asia/Ho_Chi_Minh')->addHour(5);
+                if($showDateTime->lt($currentDataTime)){
+                    $dt->status = Showtime::STATUS_COMPLETED;
+                    $dt->save();
+                }
+            }
+
             $result = [
                 'showtimes' => ShowtimeResource::collection($data),
                 'meta' => [
@@ -86,6 +96,8 @@ class ShowtimeController extends Controller
                 $showtimeData = $request->all();
                 if (Carbon::parse($request->show_date)->lt($movie->release_date)) {
                     $showtimeData['status'] = Showtime::STATUS_EARLY;
+                    $movie->is_early_showtime = true;
+                    $movie->save();
                 }
                 $showtime = Showtime::create($showtimeData);
                 if (!$showtime) {

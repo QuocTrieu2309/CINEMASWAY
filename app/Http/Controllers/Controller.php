@@ -10,8 +10,8 @@ class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
     protected $limit = 1000;
-    protected $order = 'asc';
-    protected $sort = 'created_at';
+    protected $order = 'desc';
+    protected $sort = 'id';
 
     //    Paginate
     public function handleLimit($key, $initialValue)

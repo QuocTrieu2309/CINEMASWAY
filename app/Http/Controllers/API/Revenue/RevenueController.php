@@ -225,14 +225,13 @@ class RevenueController extends Controller
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
-    // thông kê phim bán được nhiều vé nhất và số lượng vé đã bán của phim hiện đang chiếu
+    // thông kê phim bán được nhiều vé nhất và số lượng vé đã bán của phim chưa hết hạn và showtime(deleted =0 )
     public function revenueFilms()
     {
         try {
-            $allMovies = Movie::whereHas('showtimes', function ($query) {
-                $query->where('show_date', '>=', Carbon::now()->format('Y-m-d'));
-            })->get();
-            // Truy vấn tổng số vé bán ra cho mỗi phim
+            $allMovies = Movie::where('deleted', 0)
+                ->whereHas('showtimes')
+                ->get();
             $ticketsSold = Showtime::whereHas('bookings')
                 ->with('bookings')
                 ->get()
@@ -258,6 +257,7 @@ class RevenueController extends Controller
                 ->sortByDesc('tickets_sold')
                 ->values()
                 ->all();
+
             return ApiResponse(true, $results, Response::HTTP_OK, 'Thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());

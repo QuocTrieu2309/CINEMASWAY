@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\Revenue;
 
 use App\Http\Controllers\Controller;
+use App\Models\Booking;
 use App\Models\Cinema;
 use App\Models\Movie;
 use App\Models\Showtime;
@@ -18,12 +19,9 @@ class RevenueController extends Controller
         $this->middleware('auth:sanctum');
     }
 
-    // tổng của các rạp
-    public function totalRevenue(Request $request)
+    // tổng của các rạp theo thangs
+    public function totalRevenue()
     {
-        $this->limit = $this->handleLimit($request->get('limit'), 13);
-        $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), 'date');
-        $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), 'desc');
         try {
             $cinemas = Cinema::with([
                 'cinemaScreens.showtimes' => function ($query) {
@@ -39,118 +37,94 @@ class RevenueController extends Controller
                     $query->where('deleted', 0);
                 }
             ])->where('deleted', 0)->get();
+            // Lấy tháng đầu tiên có booking
+            $firstBooking = Booking::where('deleted', 0)->orderBy('created_at', 'asc')->first();
+            if (!$firstBooking) {
+                return ApiResponse(true, [], Response::HTTP_OK, 'Không có dữ liệu booking');
+            }
+            $startDate = Carbon::parse($firstBooking->created_at)->startOfMonth();
+            $endDate = Carbon::now()->endOfMonth();
+            $monthlyData = [];
+            while ($startDate <= $endDate) {
+                $monthStart = $startDate->copy()->startOfMonth();
+                $monthEnd = $startDate->copy()->endOfMonth();
+                $month = $monthStart->format('Y-m');
+                foreach ($cinemas as $cinema) {
+                    if (!isset($monthlyData[$month][$cinema->name])) {
+                        $monthlyData[$month][$cinema->name] = [
+                            'doanh_thu' => [
+                                'tickets' => [
+                                    'ticket_revenue' => 0,
+                                    'ticket_quantity' => 0,
+                                ],
+                                'services' => [
+                                    'total_service_revenue' => 0,
+                                    'details' => []
+                                ],
+                                'total_income' => 0
+                            ]
+                        ];
+                    }
 
-            $endDate = Carbon::now();
-            $startDate = $endDate->copy()->subDays(59);
+                    foreach ($cinema->cinemaScreens as $screen) {
+                        foreach ($screen->showtimes as $showtime) {
+                            foreach ($showtime->bookings as $booking) {
+                                if ($booking->created_at->between($monthStart, $monthEnd)) {
+                                    $ticketRevenue = 0;
+                                    foreach ($booking->tickets as $ticket) {
+                                        $seatType = $ticket->seat->seatType;
+                                        $isWeekend = Carbon::parse($showtime->show_date)->isWeekend();
+                                        $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
+                                        $isEarlyStatus = $showtime->status === Showtime::STATUS_EARLY;
+                                        $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
+                                        $ticketRevenue += $price;
+                                    }
+                                    $monthlyData[$month][$cinema->name]['doanh_thu']['tickets']['ticket_revenue'] += $ticketRevenue;
+                                    $monthlyData[$month][$cinema->name]['doanh_thu']['tickets']['ticket_quantity'] += $booking->quantity;
+                                    foreach ($booking->bookingServices as $bookingService) {
+                                        $serviceName = $bookingService->service->name;
+                                        if (!isset($monthlyData[$month][$cinema->name]['doanh_thu']['services']['details'][$serviceName])) {
+                                            $monthlyData[$month][$cinema->name]['doanh_thu']['services']['details'][$serviceName] = [
+                                                'service' => $serviceName,
+                                                'quantity' => 0,
+                                                'subtotal' => 0
+                                            ];
+                                        }
+                                        $monthlyData[$month][$cinema->name]['doanh_thu']['services']['details'][$serviceName]['quantity'] += $bookingService->quantity;
+                                        $monthlyData[$month][$cinema->name]['doanh_thu']['services']['details'][$serviceName]['subtotal'] += $bookingService->subtotal;
+                                        $monthlyData[$month][$cinema->name]['doanh_thu']['services']['total_service_revenue'] += $bookingService->subtotal;
+                                    }
 
-            $dailyData = [];
-
-            foreach ($cinemas as $cinema) {
-                foreach ($cinema->cinemaScreens as $screen) {
-                    foreach ($screen->showtimes as $showtime) {
-                        foreach ($showtime->bookings as $booking) {
-                            $date = $booking->created_at->format('Y-m-d');
-                            if (!isset($dailyData[$date])) {
-                                $dailyData[$date] = [
-                                    'doanh_thu' => [
-                                        'tickets' => [
-                                            'ticket_revenue' => 0,
-                                            'ticket_quantity' => 0,
-                                        ],
-                                        'services' => [
-                                            'total_service_revenue' => 0,
-                                            'details' => []
-                                        ],
-                                        'total_income' => 0
-                                    ]
-                                ];
-                            }
-                            $ticketRevenue = 0;
-                        foreach ($booking->tickets as $ticket) {
-                            $seatType = $ticket->seat->seatType;
-                            $isWeekend = Carbon::parse($showtime->show_date)->isWeekend();
-                            $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
-                            // Kiểm tra trạng thái showtime
-                            $isEarlyStatus = $showtime->status === Showtime::STATUS_EARLY;
-                            $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
-                            $ticketRevenue += $price;
-                        }
-                            $dailyData[$date]['doanh_thu']['tickets']['ticket_revenue'] += $ticketRevenue;
-                            $dailyData[$date]['doanh_thu']['tickets']['ticket_quantity'] += $booking->quantity;
-                            foreach ($booking->bookingServices as $bookingService) {
-                                $serviceName = $bookingService->service->name;
-                                if (!isset($dailyData[$date]['doanh_thu']['services']['details'][$serviceName])) {
-                                    $dailyData[$date]['doanh_thu']['services']['details'][$serviceName] = [
-                                        'service' => $serviceName,
-                                        'quantity' => 0,
-                                        'subtotal' => 0
-                                    ];
+                                    $monthlyData[$month][$cinema->name]['doanh_thu']['total_income'] = $monthlyData[$month][$cinema->name]['doanh_thu']['tickets']['ticket_revenue'] + $monthlyData[$month][$cinema->name]['doanh_thu']['services']['total_service_revenue'];
                                 }
-                                $dailyData[$date]['doanh_thu']['services']['details'][$serviceName]['quantity'] += $bookingService->quantity;
-                                $dailyData[$date]['doanh_thu']['services']['details'][$serviceName]['subtotal'] += $bookingService->subtotal;
-                                $dailyData[$date]['doanh_thu']['services']['total_service_revenue'] += $bookingService->subtotal;
                             }
-
-                            $dailyData[$date]['doanh_thu']['total_income'] = $dailyData[$date]['doanh_thu']['tickets']['ticket_revenue'] + $dailyData[$date]['doanh_thu']['services']['total_service_revenue'];
                         }
                     }
                 }
+
+                $startDate->addMonth();
             }
-            $currentDate = $endDate->copy(); // Bắt đầu từ ngày hôm nay
-            while ($currentDate->gte($startDate)) { // Lặp ngược lại cho đến ngày bắt đầu
-                $date = $currentDate->format('Y-m-d');
-                if (!isset($dailyData[$date])) {
-                    $dailyData[$date] = [
+
+            $formattedData = [];
+            foreach ($monthlyData as $month => $cinemas) {
+                foreach ($cinemas as $cinemaName => $data) {
+                    $formattedData[$month][] = [
+                        'cinema' => $cinemaName,
                         'doanh_thu' => [
                             'tickets' => [
-                                'ticket_revenue' => 0,
-                                'ticket_quantity' => 0,
+                                'quantity' => $data['doanh_thu']['tickets']['ticket_quantity'],
+                                'subtotal' => $data['doanh_thu']['tickets']['ticket_revenue'],
                             ],
                             'services' => [
-                                'total_service_revenue' => 0,
-                                'details' => []
+                                'quantity' => array_sum(array_column($data['doanh_thu']['services']['details'], 'quantity')),
+                                'subtotal' => $data['doanh_thu']['services']['total_service_revenue'],
                             ],
-                            'total_income' => 0
+                            'total_income' => $data['doanh_thu']['total_income']
                         ]
                     ];
                 }
-                $currentDate->subDay(); // Lùi về một ngày
             }
-            // Chuyển dữ liệu thành mảng
-            $formattedData = [];
-            foreach ($dailyData as $date => $data) {
-                $formattedData[] = [
-                    'date' => $date,
-                    'doanh_thu' => [
-                        'tickets' => $data['doanh_thu']['tickets'],
-                        'services' => [
-                            'total_service_revenue' => $data['doanh_thu']['services']['total_service_revenue'],
-                            'details' => array_values($data['doanh_thu']['services']['details']),
-                        ],
-                        'total_income' => $data['doanh_thu']['total_income']
-                    ]
-                ];
-            }
-
-            // Sắp xếp dữ liệu theo ngày
-            usort($formattedData, function ($a, $b) {
-                return ($this->sort === 'desc')
-                    ? strtotime($b['date']) - strtotime($a['date'])
-                    : strtotime($a['date']) - strtotime($b['date']);
-            });
-
-            // Phân trang
-            $totalDays = count($formattedData);
-            $offset = ($this->limit * ($request->input('page', 1) - 1));
-            $paginatedData = array_slice($formattedData, $offset, $this->limit);
-
-            return ApiResponse(true, [
-                'data' => $paginatedData,
-                'current_page' => $request->input('page', 1),
-                'per_page' => $this->limit,
-                'total' => $totalDays,
-                'last_page' => ceil($totalDays / $this->limit),
-            ], Response::HTTP_OK, 'Thành công');
+            return ApiResponse(true, $formattedData, Response::HTTP_OK, 'Thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

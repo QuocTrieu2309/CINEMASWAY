@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Cinema;
 use App\Models\Movie;
+use App\Models\Service;
 use App\Models\Showtime;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -233,32 +234,79 @@ class RevenueController extends Controller
                 ->whereHas('showtimes')
                 ->get();
             $ticketsSold = Showtime::whereHas('bookings')
-                ->with('bookings')
+                ->with(['bookings', 'bookings.tickets.seat.seatType'])
                 ->get()
                 ->flatMap(function ($showtime) {
                     return $showtime->bookings->map(function ($booking) use ($showtime) {
+                        $ticketRevenue = 0;
+                        foreach ($booking->tickets as $ticket) {
+                            $seatType = $ticket->seat->seatType;
+                            $isWeekend = Carbon::parse($showtime->show_date)->isWeekend();
+                            $basePrice = $isWeekend ? $seatType->promotion_price : $seatType->price;
+                            $isEarlyStatus = $showtime->status === Showtime::STATUS_EARLY;
+                            $price = $isEarlyStatus ? $basePrice * 1.5 : $basePrice;
+                            $ticketRevenue += $price;
+                        }
                         return [
                             'movie_id' => $showtime->movie_id,
-                            'tickets_sold' => $booking->quantity
+                            'tickets_sold' => $booking->quantity,
+                            'ticket_revenue' => $ticketRevenue
                         ];
                     });
                 })
                 ->groupBy('movie_id')
                 ->map(function ($items) {
-                    return $items->sum('tickets_sold');
+                    return [
+                        'tickets_sold' => $items->sum('tickets_sold'),
+                        'ticket_revenue' => $items->sum('ticket_revenue')
+                    ];
                 });
 
             $results = $allMovies->map(function ($movie) use ($ticketsSold) {
                 return [
                     'movie_title' => $movie->title,
-                    'tickets_sold' => $ticketsSold->get($movie->id, 0)
+                    'tickets_sold' => $ticketsSold->get($movie->id, ['tickets_sold' => 0])['tickets_sold'],
+                    'ticket_revenue' => $ticketsSold->get($movie->id, ['ticket_revenue' => 0])['ticket_revenue']
                 ];
             })
                 ->sortByDesc('tickets_sold')
                 ->values()
                 ->all();
-
             return ApiResponse(true, $results, Response::HTTP_OK, 'Thành công');
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+
+    // thống kê doanh số của dịch vụ
+    public function serviceRevenue()
+    {
+        try {
+            $services = Service::with(['bookingServices' => function ($query) {
+                $query->where('deleted', 0);
+            }])
+                ->where('deleted', 0)
+                ->get();
+
+            $serviceData = $services->map(function ($service) {
+                $totalQuantity = 0;
+                $totalRevenue = 0;
+
+                foreach ($service->bookingServices as $bookingService) {
+                    $totalQuantity += $bookingService->quantity;
+                    $totalRevenue += $bookingService->subtotal;
+                }
+
+                return [
+                    'service' => $service->name,
+                    'quantity_sold' => $totalQuantity,
+                    'total_revenue' => $totalRevenue,
+                ];
+            })
+                ->sortByDesc('quantity_sold')
+                ->values()
+                ->all();
+            return ApiResponse(true, $serviceData, Response::HTTP_OK, 'Thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

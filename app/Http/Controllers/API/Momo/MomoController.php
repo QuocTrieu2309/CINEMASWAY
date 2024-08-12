@@ -113,7 +113,7 @@ class MomoController extends Controller
             $ipnUrl = route('momo.callback');
             $orderInfo = 'pay with MoMo';
             $requestType = 'payWithATM';
-            $orderExpireTime = 5;
+            $orderExpireTime= 8;
             $extraData = '';
             $orderGroupId = '';
             $autoCapture = true;

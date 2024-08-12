@@ -28,7 +28,9 @@ class RevenueController extends Controller
                     $query->where('deleted', 0);
                 },
                 'cinemaScreens.showtimes.bookings' => function ($query) {
-                    $query->where('deleted', 0);
+                    $query->where('deleted', 0)
+                    ->where('status', 'Payment successful');
+                    ;
                 },
                 'cinemaScreens.showtimes.bookings.bookingServices.service' => function ($query) {
                     $query->where('deleted', 0);
@@ -108,7 +110,8 @@ class RevenueController extends Controller
                     $query->where('deleted', 0);
                 },
                 'cinemaScreens.showtimes.bookings' => function ($query) {
-                    $query->where('deleted', 0);
+                    $query->where('deleted', 0)
+                    ->where('status', 'Payment successful');
                 },
                 'cinemaScreens.showtimes.bookings.bookingServices.service' => function ($query) {
                     $query->where('deleted', 0);
@@ -233,8 +236,12 @@ class RevenueController extends Controller
             $allMovies = Movie::where('deleted', 0)
                 ->whereHas('showtimes')
                 ->get();
-            $ticketsSold = Showtime::whereHas('bookings')
-                ->with(['bookings', 'bookings.tickets.seat.seatType'])
+                $ticketsSold = Showtime::whereHas('bookings', function ($query) {
+                    $query->where('status', 'Payment successful');
+                })
+                ->with(['bookings' => function ($query) {
+                    $query->where('status', 'Payment successful');
+                }, 'bookings.tickets.seat.seatType'])
                 ->get()
                 ->flatMap(function ($showtime) {
                     return $showtime->bookings->map(function ($booking) use ($showtime) {
@@ -283,20 +290,21 @@ class RevenueController extends Controller
     {
         try {
             $services = Service::with(['bookingServices' => function ($query) {
-                $query->where('deleted', 0);
+                $query->where('deleted', 0)
+                      ->whereHas('booking', function ($q) {
+                          $q->where('status', 'Payment successful');
+                      });
             }])
-                ->where('deleted', 0)
-                ->get();
+            ->where('deleted', 0)
+            ->get();
 
             $serviceData = $services->map(function ($service) {
                 $totalQuantity = 0;
                 $totalRevenue = 0;
-
                 foreach ($service->bookingServices as $bookingService) {
                     $totalQuantity += $bookingService->quantity;
                     $totalRevenue += $bookingService->subtotal;
                 }
-
                 return [
                     'service' => $service->name,
                     'quantity_sold' => $totalQuantity,

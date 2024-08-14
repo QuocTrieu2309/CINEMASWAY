@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Jobs\SendRegisterEmail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Redirect;
 
 class AuthController extends Controller
 {
@@ -108,6 +109,6 @@ class AuthController extends Controller
         }
         $credential->status = User::STATUS_ACTIVE;
         $credential->save();
-        // return view();
+        return  Redirect::to('http://localhost:5173/login');
     }
 }

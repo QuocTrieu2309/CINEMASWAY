@@ -9,7 +9,7 @@
 
 <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background-color: #f5f5f5; min-height: 100vh;">
     <div style="padding: 20px; background-color: #fff; border-radius: 10px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); width: 90%; max-width: 800px;">
-        <h1 style="font-size: 24px; text-align: center; margin: 0; color: #333;">CinemasGO: Giao Dich Thành Công</h1>
+        <h1 style="font-size: 24px; text-align: center; margin: 0; color: #333;">CinemasGO: Giao Dịch Thành Công</h1>
         <div style="text-align: center; margin-bottom: 15px;">
             <img src="https://res.cloudinary.com/dgxqkxclv/image/upload/depositphotos_117056896-stock-illustration-cinema-banners-vector-illustration_jm0a87" alt="CinemaGO" style="width: 100%; height: 400px; object-fit: contain;">
         </div>

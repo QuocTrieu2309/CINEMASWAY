@@ -56,7 +56,7 @@ class SeatMapController extends Controller
             $layoutArr  = explode('|', $layout);
             $seatAll = Seat::where('cinema_screen_id', $seatMap->cinema_screen_id)->get();
             $detail = [];
-            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
+            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F','G', 'H', 'I', 'K', 'L', 'M', 'N'];
             foreach ($seatAll as $item) {
                 $count = 0;
                 foreach ($characterArr as $character) {

@@ -20,28 +20,28 @@ class ChangePasswordController extends Controller
         $this->middleware('auth:sanctum');
     }
 
-    //POST api/account/active-token
-    public function activeToken()
-    {
-        try {
-            $user = Auth::user();
-            if (!$user) {
-                return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Vui lòng đăng nhập trước.');
-            }
-            $email = $user->email;
-            $token = bin2hex(random_bytes(32));
-            $validToken = DB::table('password_reset_tokens')
-                ->insert([
-                    'email' => $email,
-                    'token' => $token,
-                    'created_at' => now()
-                ]);
-            Mail::to($email)->send(new ChangePassword($token, $email));
-            return ApiResponse(true,  $token, Response::HTTP_OK, 'Token đã được gửi tới email thành công');
-        } catch (\Exception $e) {
-            return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
-        }
-    }
+    // //POST api/account/active-token
+    // public function activeToken()
+    // {
+    //     try {
+    //         $user = Auth::user();
+    //         if (!$user) {
+    //             return ApiResponse(false, null, Response::HTTP_UNAUTHORIZED, 'Vui lòng đăng nhập trước.');
+    //         }
+    //         $email = $user->email;
+    //         $token = bin2hex(random_bytes(32));
+    //         $validToken = DB::table('password_reset_tokens')
+    //             ->insert([
+    //                 'email' => $email,
+    //                 'token' => $token,
+    //                 'created_at' => now()
+    //             ]);
+    //         Mail::to($email)->send(new ChangePassword($token, $email));
+    //         return ApiResponse(true,  $token, Response::HTTP_OK, 'Token đã được gửi tới email thành công');
+    //     } catch (\Exception $e) {
+    //         return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
+    //     }
+    // }
     //POSt api/account/change-password
     public function changePassword(Request $request)
     {
@@ -50,7 +50,7 @@ class ChangePasswordController extends Controller
                 $request->all(),
                 [
                     'password' => 'required|string|min:8|max:10',
-                    'new_password' => 'required|string|min:8|max:10'
+                    'new_password' => 'required|string|min:8|max:10|different:password'
                 ],
                 [
                     'required' => 'Trường :attribute không được để trống',

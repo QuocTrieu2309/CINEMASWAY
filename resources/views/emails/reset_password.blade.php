@@ -53,6 +53,10 @@
             padding: 5px 3px;
             display: inline-block;
         }
+        .password{
+            border: 1px solid black;
+            padding: 5px 3px;
+        }
     </style>
 </head>
 <body>
@@ -65,6 +69,8 @@
             @csrf
             <input type="hidden" name="token" value={{$token}}>
             <input type="hidden" name="email" value={{$email}}>
+            <label for="">Vui lòng nhập mật khẩu mới của bạn</label>
+            <input type="text" name="password" class='password'>
             <button type="submit" class="link-button">Xác Nhận</button>
         </form>
     </div>

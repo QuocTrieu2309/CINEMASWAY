@@ -51,44 +51,55 @@ class SeatController extends Controller
      * Store a newly created resource in storage.
      */
     //POST api/dashboard/seat/create
+
     public function store(SeatRequest $request)
     {
         try {
             $this->authorize('checkPermission', Seat::class);
-            $data  = $request->all();
+            $data = $request->all();
             $seatType = SeatType::find($request->seat_type_id);
+
             if (!$seatType) {
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseNotFound());
             }
+
             $type = $seatType->name;
-            $seatAllScreen  = Seat::where('cinema_screen_id', $request->cinema_screen_id)->get();
+            $seatAllScreen = Seat::where('cinema_screen_id', $request->cinema_screen_id)->get();
             $seatMap = SeatMap::where('cinema_screen_id', $request->cinema_screen_id)->first();
             $totalSeatMap = $seatMap->seat_total;
-            $totalRow = $seatMap->total_row;
+
             if (count($seatAllScreen) >= $totalSeatMap) {
                 return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, 'Số lượng ghế của phòng chiếu đã đầy không thể thêm mới.');
             }
-            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F', 'H', 'I', 'K', 'L', 'M', 'N'];
+            $characterArr = ['A', 'B', 'C', 'D', 'E', 'F','G', 'H', 'I', 'K', 'L', 'M', 'N'];
             $seatNumber = $request->seat_number;
             $seatCharacter = $seatNumber[0];
             $characterNumber = substr($seatNumber, 1);
             $indexCharacter = array_search($seatCharacter, $characterArr);
             $layout = $seatMap->layout;
             $layoutArr = explode('|', $layout);
-            foreach ($layoutArr as $item) {
-                $item = str_replace('X', '', $item);
-                if ($item == "") {
-                    $totalRow = $totalRow - 1;
-                }
-            }
-            if (($indexCharacter + 1) >  $totalRow) {
-                return ApiResponse(false, $totalRow, Response::HTTP_BAD_REQUEST, "Dãy ghế cao nhất của phòng chiếu được bắt đầu bởi kí tự" . " " . $characterArr[$totalRow - 1]);
+
+            // Calculate the actual total rows with non-empty seats
+            $actualRows = array_values(array_filter($layoutArr, function ($row) {
+                return str_replace('X', '', $row) !== "";
+            }));
+
+            $totalRow = count($actualRows);
+
+            if (($indexCharacter + 1) > $totalRow) {
+                return ApiResponse(false, $totalRow, Response::HTTP_BAD_REQUEST, "Dãy ghế cao nhất của phòng chiếu được bắt đầu bởi kí tự " . $characterArr[$totalRow - 1]);
             } else {
-                $layoutRow =  $layoutArr[$indexCharacter];
+                $layoutRow = isset($actualRows[$indexCharacter]) ? $actualRows[$indexCharacter] : '';
                 $layoutRow = str_replace('X', '', $layoutRow);
                 $count = Str::length($layoutRow);
+
+                if ($count == 0) {
+                    return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Hàng ghế này không thể tạo thêm");
+                }
+
                 $seatMapType = $layoutRow[0];
                 $checkType = "";
+
                 if ($seatMapType == 'N') {
                     $checkType = 'thường';
                 } elseif ($seatMapType == 'V') {
@@ -96,16 +107,20 @@ class SeatController extends Controller
                 } elseif ($seatMapType == 'C') {
                     $checkType = 'đôi';
                 }
-                if (!str_contains($type,  $checkType)) {
+
+                if (!str_contains($type, $checkType)) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Loại ghế không đúng so với loại ghế trong seat map.");
                 }
+
                 if ($characterNumber > $count) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Số ghế không được lớn hơn số ghế đang sử dụng trong dãy");
                 }
+
                 $seatCharacterAll = Seat::where('seat_number', 'LIKE', $seatCharacter . '%')
                     ->where('cinema_screen_id', $request->cinema_screen_id)
                     ->get();
                 $countSeat = count($seatCharacterAll);
+
                 if ($countSeat >= $count) {
                     return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, "Hàng ghế này đã đầy không thể tạo thêm");
                 } else {
@@ -115,11 +130,13 @@ class SeatController extends Controller
                     }
                 }
             }
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
     /**
      * Display the specified resource.
      */

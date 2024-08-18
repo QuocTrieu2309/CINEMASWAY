@@ -73,7 +73,7 @@
                             <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">{{ $details['price'] }} VND</td>
                             <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">{{ $details['quantity'] }}</td>
                             <td style="padding: 10px; text-align: center; border-bottom: 1px solid #ddd;">    {{ number_format($details['total'], 0, ',', '.') }} VND
-                            VND</td>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>

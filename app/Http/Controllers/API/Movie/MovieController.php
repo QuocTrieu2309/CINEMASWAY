@@ -28,6 +28,16 @@ class MovieController extends Controller
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
             $data = Movie::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $current_date = now()->format('Y-m-d');
+            foreach ($data as $movie) {
+                if($current_date > $movie->end_date) {
+                    $movie->status = Movie::STATUS_STOPPED;
+                    $movie->save();
+                } else if ($current_date >= $movie->release_date && $current_date <= $movie->end_date) {
+                    $movie->status = Movie::STATUS_CURRENTLY;
+                    $movie->save();
+                }
+            }
             $result = [
                 'movies' => MovieResource::collection($data),
                 'meta' => [

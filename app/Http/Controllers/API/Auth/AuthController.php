@@ -111,4 +111,31 @@ class AuthController extends Controller
         $credential->save();
         return  Redirect::to('http://localhost:5173/login');
     }
+    public function checkTokenExpiry(Request $request)
+    {
+        try {
+            $token = $request->user()->currentAccessToken();
+            if ($token->expires_at && $token->expires_at->isPast()) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Token đã hết hạn');
+            }
+            return ApiResponse(true,true, Response::HTTP_OK, 'token còn hạn');
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+
+
+    // Kiểm tra role của user có phải là admin hay không
+    public function checkAdminRole(Request $request)
+    {
+        try {
+            $user = $request->user();
+            if ($user->role && $user->role->name === 'Admin') {
+                return ApiResponse(true, null, Response::HTTP_OK, 'User là admin');
+            }
+            return ApiResponse(true, null, Response::HTTP_BAD_REQUEST, 'User không phải admin');
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
 }

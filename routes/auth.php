@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Route;
 Route::group(['prefix' => 'account'], function () {
     // Register Route
     Route::post('/register',[AuthController::class,'register']);
-    // Login Route 
+    // Login Route
     Route::post('/login',[AuthController::class,'login']);
     // Logout Route
     Route::post('/logout',[AuthController::class,'logout']);
@@ -28,4 +28,8 @@ Route::group(['prefix' => 'account'], function () {
     Route::post('/active-token',[ChangePasswordController::class,'activeToken']);
     //POST Change Password Route
     Route::post('/change-password',[ChangePasswordController::class,'changePassword']);
+    // check mã token đăng nhập còn hạn
+    Route::get('/check-token-expiry', [AuthController::class, 'checkTokenExpiry']);
+    // check token xem có phải là admin khôn
+    Route::get('/check-admin-role', [AuthController::class, 'checkAdminRole']);
 });

@@ -130,7 +130,7 @@ class AuthController extends Controller
     {
         try {
             $user = $request->user();
-            if ($user->role_id === 1) {
+            if ($user->role && $user->role->name === 'Admin') {
                 return ApiResponse(true, null, Response::HTTP_OK, 'User là admin');
             }
             return ApiResponse(true, null, Response::HTTP_BAD_REQUEST, 'User không phải admin');

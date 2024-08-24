@@ -42,7 +42,7 @@ class SeatMapRequest extends FormRequest
                             'seat_total' => 'required|integer|min:4|max:'.$maxSeatTotal,
                             'total_row' => 'required|integer|min:4|max:12',
                             'total_column' => 'required|integer|min:4|max:12',
-                            'layout' => ['required', 'string', 
+                            'layout' => ['required', 'string',
                             'regex:/^(?:[NVCX]+\|?)*[NVCX]+$/'
                         ],
                         ];
@@ -96,7 +96,9 @@ class SeatMapRequest extends FormRequest
     }
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        $errors = $validator->errors()->all();
+
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $errors);
         throw (new ValidationException($validator, $response));
     }
 }

@@ -162,7 +162,9 @@ class ShowtimeRequest extends FormRequest
 
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        $errors = $validator->errors()->all();
+
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $errors);
         throw (new ValidationException($validator, $response));
     }
 }

@@ -32,9 +32,11 @@ class MovieController extends Controller
             foreach ($data as $movie) {
                 if($current_date > $movie->end_date) {
                     $movie->status = Movie::STATUS_STOPPED;
+                    $movie->is_early_showtime = 0;
                     $movie->save();
                 } else if ($current_date >= $movie->release_date && $current_date <= $movie->end_date) {
                     $movie->status = Movie::STATUS_CURRENTLY;
+                    $movie->is_early_showtime = 0;
                     $movie->save();
                 }
             }

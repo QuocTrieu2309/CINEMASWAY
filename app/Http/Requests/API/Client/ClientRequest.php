@@ -33,7 +33,7 @@ class ClientRequest extends FormRequest
                         $rules = [
                             'showtime_id' => 'required|exists:showtimes,id',
                             'quantity' => 'required|integer|min:1|max:8',
-                            'subtotal'=> 'required|numeric|min:50000|max:2000000' 
+                            'subtotal'=> 'required|numeric|min:50000|max:2000000'
                         ];
                         break;
                         case 'createBooingService':
@@ -68,7 +68,9 @@ class ClientRequest extends FormRequest
     }
     public function failedValidation(Validator $validator)
     {
-        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $validator->errors());
+        $errors = $validator->errors()->all();
+
+        $response = ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $errors);
         throw (new ValidationException($validator, $response));
     }
 }

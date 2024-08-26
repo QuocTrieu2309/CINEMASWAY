@@ -98,11 +98,18 @@ class SeatTypeController extends Controller
             $this->authorize('checkPermission', SeatType::class);
             $seatType = SeatType::where('id', $id)->where('deleted', 0)->first();
             empty($seatType) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $seatTypeUpdate = SeatType::where('id', $id)->update([
-                'name' => $request->get('name') ?? $seatType->name
-            ]);
+            $hasRelatedRecords = $seatType->seats()->exists() || $seatType->screen()->exists();
+            if(!$hasRelatedRecords) {
+                $seatTypeUpdate = SeatType::where('id', $id)->update([
+                    'name' => $request->get('name') ?? $seatType->name,
+                    'price' => $request->get('price') ?? $seatType->price,
+                    'promotion_price' => $request->get('promotion_price') ?? $seatType->promotion_price,
+                ]);
 
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+                return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+            } else {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Không thể cập nhật do đã có dữ liệu ghế.');
+            }
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }

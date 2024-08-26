@@ -26,6 +26,10 @@
                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ $cinema->name }}</td>
                 </tr>
                 <tr>
+                    <th style="padding: 10px; text-align: center; background-color: #f0f0f0; font-weight: bold; border: 1px solid #ddd;"> Phòng chiếu:</th>
+                    <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ $cinema->name }} - {{ $booking->showtime->cinemaScreen->screen->name }}</td>
+                </tr>
+                <tr>
                     <th style="padding: 10px; text-align: center; background-color: #f0f0f0; font-weight: bold; border: 1px solid #ddd;">Màn chiếu:</th>
                     <td style="padding: 10px; text-align: center; border: 1px solid #ddd;">{{ $booking->showtime->cinemaScreen->screen->name }}</td>
                 </tr>

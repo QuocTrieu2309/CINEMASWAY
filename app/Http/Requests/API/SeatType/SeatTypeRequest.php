@@ -70,7 +70,6 @@ class SeatTypeRequest extends FormRequest
                     case 'update':
                         $rules = [
                             'name' => [
-                                'required',
                                 Rule::in([
                                     SeatType::SEAT_TYPE_C_2D,
                                     SeatType::SEAT_TYPE_N_2D,
@@ -86,9 +85,8 @@ class SeatTypeRequest extends FormRequest
                                     return $query->where('deleted', 0)->where('id', '!=', $this->id);
                                 }),
                             ],
-                            'price' => 'required|numeric|min:10000',
+                            'price' => 'numeric|min:10000',
                             'promotion_price' => [
-                                'required',
                                 'numeric',
                                 'min:0',
                                 function ($attribute, $value, $fail) {
@@ -116,7 +114,9 @@ class SeatTypeRequest extends FormRequest
     public function attributes()
     {
         return [
-            'name' => 'Loại ghế'
+            'name' => 'Loại ghế',
+            'price' => 'Giá gốc',
+            'promotion_price' => 'Giá ngày lễ',
         ];
     }
 

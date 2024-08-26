@@ -22,14 +22,21 @@ class CinemaController extends Controller
 
      */
     //GET api/dashboard/cinema
+    // Controller method
     public function index(Request $request)
     {
         try {
             $this->authorize('checkPermission', Cinema::class);
-            $this->limit == $this->handleLimit($request->get('limit'), $this->limit);
+            $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = Cinema::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $data = Cinema::where('deleted', 0)
+                ->withCount(['cinemaScreens as quantity' => function ($query) {
+                    $query->where('deleted', 0);
+                }])
+                ->orderBy($this->sort, $this->order)
+                ->paginate($this->limit);
+
             $result = [
                 'cinemas' => CinemaResource::collection($data),
                 'meta' => [
@@ -39,11 +46,13 @@ class CinemaController extends Controller
                     'lastPage' => $data->lastPage(),
                 ]
             ];
+
             return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
     }
+
 
     /**
      * Store a newly created resource in storage.

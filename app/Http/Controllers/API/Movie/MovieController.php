@@ -98,9 +98,12 @@ class MovieController extends Controller
             $currentDate = now()->toDateString();
             $hasUpcomingShowtimes = $movie->showtimes()->where('show_date', '>=', $currentDate)
                 ->where('deleted', 0)
+                ->whereHas('bookings', function ($query) {
+                    $query->where('status', 'Payment successful');
+                })
                 ->exists();
             if ($hasUpcomingShowtimes) {
-                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể cập nhật phim khi phim vẫn còn xuất chiếu.");
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể cập nhật phim khi phim vẫn còn xuất chiếu đang hoạt động và có vé đã được đặt.");
             }
             $data = $request->all();
             $cridential = $movie->update($data);
@@ -124,9 +127,12 @@ class MovieController extends Controller
             $currentDate = now()->toDateString();
             $hasUpcomingShowtimes = $movie->showtimes()->where('show_date', '>=', $currentDate)
                 ->where('deleted', 0)
+                ->whereHas('bookings', function ($query) {
+                    $query->where('status', 'Payment successful');
+                })
                 ->exists();
             if ($hasUpcomingShowtimes) {
-                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể xóa phim khi phim vẫn còn xuất chiếu.");
+                return ApiResponse(false, null, Response::HTTP_FORBIDDEN, "Không thể xóa phim khi phim vẫn còn xuất chiếu đang hoạt động và có vé đã được đặt.");
             }
             $hasRelatedRecords = $movie->showtimes()->exists();
             if ($hasRelatedRecords) {

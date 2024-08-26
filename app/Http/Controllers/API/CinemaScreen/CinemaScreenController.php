@@ -111,6 +111,16 @@ class CinemaScreenController extends Controller
             DB::beginTransaction();
             $CinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
             empty($CinemaScreen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $hasActiveShowtimes = $CinemaScreen->showtimes()
+                ->where('show_time', '>=', now())
+                ->where('deleted', 0)
+                ->whereHas('bookings', function ($query) {
+                    $query->where('status', 'Payment successful');
+                })
+                ->exists();
+            if ($hasActiveShowtimes) {
+                throw new \ErrorException('Không thể xóa màn hình rạp chiếu khi vẫn còn suất chiếu đang hoạt động và đã có vé được đặt.', Response::HTTP_BAD_REQUEST);
+            }
             $hasRelatedRecords = $CinemaScreen->seatMaps()->exists() ||
                 $CinemaScreen->seats()->exists() ||
                 $CinemaScreen->showtimes()->exists();
@@ -121,7 +131,6 @@ class CinemaScreenController extends Controller
                 $CinemaScreen->delete();
             }
             DB::commit();
-
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             DB::rollback();

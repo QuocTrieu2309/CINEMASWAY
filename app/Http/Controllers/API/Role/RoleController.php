@@ -6,7 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\API\Role\RoleRequest;
 use App\Http\Resources\API\Role\RoleResource;
 use App\Models\Role;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class RoleController extends Controller
 {
@@ -16,12 +19,41 @@ class RoleController extends Controller
     }
 
     //GET api/dashboard/role
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $this->authorize('checkPermission',Role::class);
-            $roles = Role::where('deleted',0)->take(5)->get();
-            return ApiResponse(true, RoleResource::collection($roles), Response::HTTP_OK, messageResponseData());
+            $this->authorize('checkPermission', Role::class);
+            $this->limit == $this->handleLimit($request->get('limit'), $this->limit);
+            $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
+            $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
+            $data = Role::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $result = [
+                'roles' => RoleResource::collection($data),
+                'meta' => [
+                    'total' => $data->total(),
+                    'perPage' => $data->perPage(),
+                    'currentPage' => $data->currentPage(),
+                    'lastPage' => $data->lastPage(),
+                ]
+            ];
+            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
+        } catch (\Exception $e) {
+            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+        }
+    }
+
+    // GET /api/translation/{id}
+    public function show($id)
+    {
+
+        try {
+            $this->authorize('checkPermission', Role::class);
+            $role = Role::where('id', $id)->where('deleted', 0)->first();
+            empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $data = [
+                'screen' => new  RoleResource($role),
+            ];
+            return ApiResponse(true, $data, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -31,10 +63,10 @@ class RoleController extends Controller
     public function store(RoleRequest $request)
     {
         try {
-            $this->authorize('checkPermission',Role::class);
+            $this->authorize('checkPermission', Role::class);
             $role = Role::create($request->all());
-            if(!$role){
-               return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
+            if (!$role) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             $data = [
                 'role' => new RoleResource($role)
@@ -46,34 +78,44 @@ class RoleController extends Controller
     }
 
     //UPDATE api/dashboard/role/update/{id}
-    public function update(RoleRequest $request, string $id){
+    public function update(RoleRequest $request, string $id)
+    {
         try {
-            $this->authorize('checkPermission',Role::class);
-            $role = Role::where('id',$id)->where('deleted',0)->first();
+            $this->authorize('checkPermission', Role::class);
+            $role = Role::where('id', $id)->where('deleted', 0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
 
             $roleUpdated = Role::where('id', $id)->update([
                 'name' => $request->get('name') ?? $role->name,
-                'description' =>$request->description
+                'description' => $request->description
             ]);
 
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-        }       
+        }
     }
 
     //DELETE api/dashboard/role/delete/{id}
-    public function destroy(string $id){
+    public function destroy(string $id)
+    {
         try {
-            $this->authorize('checkPermission',Role::class);
-            $role = Role::where('id',$id)->where('deleted',0)->first();
+            $this->authorize('delete', Role::class);
+            DB::beginTransaction();
+            $role = Role::where('id', $id)->where('deleted', 0)->first();
             empty($role) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $role->deleted = 1;
-            $role->save();
+            $hasRelatedRecords =  $role->users()->exists();
+            if ($hasRelatedRecords) {
+                $role->deleted = 1;
+                $role->save();
+            } else {
+                $role->delete();
+            }
+            DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-        }    
+        }
     }
 }

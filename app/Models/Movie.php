@@ -23,10 +23,14 @@ class Movie extends Model
         'duration',
         'release_date',
         'status',
+        'is_early_showtime',
         'rated',
         'like',
         'description',
-        'deleted'
+        'image',
+        'trailer',
+        'deleted',
+        'end_date'
    ];
    protected $hidden = [
        'created_by',
@@ -34,4 +38,8 @@ class Movie extends Model
        'created_at',
        'updated_at',
    ];
+
+   public function showtimes(){
+    return $this->hasMany(Showtime::class);
+   }
 }

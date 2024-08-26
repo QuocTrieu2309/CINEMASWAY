@@ -16,11 +16,13 @@ class SeatResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'name' => $this->cinemaScreen->cinema->name,
-            'city' => $this->cinemaScreen->cinema->city,
+            'cinema_screen_id'=>$this->cinema_screen_id,
+            'seat_type_id'=>$this->seat_type_id,
+            'cinema' => $this->cinemaScreen->cinema->name,
             'screen' => $this->cinemaScreen->screen->name,
-
-
+            'seat_type'=> $this->seatType->name,
+            'seat_number' => $this->seat_number,
+            'status' => $this->status,
         ];
     }
 }

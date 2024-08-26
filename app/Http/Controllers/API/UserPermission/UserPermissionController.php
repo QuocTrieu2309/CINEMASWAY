@@ -9,6 +9,7 @@ use App\Models\UserPermission;
 use Illuminate\Http\Response;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
 
 class UserPermissionController extends Controller
 {
@@ -21,13 +22,13 @@ class UserPermissionController extends Controller
     public function index(Request $request)
     {
         try {
-            $this->authorize('checkPermission',UserPermission::class);
+            $this->authorize('checkPermission', UserPermission::class);
             $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
             $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
             $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $data = UserPermission::where('deleted',0)->orderBy($this->sort, $this->order)->paginate($this->limit);
+            $data = UserPermission::where('deleted', 0)->orderBy($this->sort, $this->order)->paginate($this->limit);
             $result = [
-                'data' => UserPermissionResource::collection($data),
+                'userPermissions' => UserPermissionResource::collection($data),
                 'meta' => [
                     'total' => $data->total(),
                     'perPage' => $data->perPage(),
@@ -35,7 +36,7 @@ class UserPermissionController extends Controller
                     'lastPage' => $data->lastPage(),
                 ],
             ];
-            return ApiResponse(true,$result, Response::HTTP_OK, messageResponseData());
+            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
         }
@@ -45,15 +46,15 @@ class UserPermissionController extends Controller
     public function store(UserPermissionRequest $request)
     {
         try {
-            $this->authorize('checkPermission',UserPermission::class);
-            $credential = UserPermission::where('user_id',$request->user_id)
-                                        ->where('permission_id',$request->permission_id)->first();
-            if($credential){
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,'Quyền hạn của người dùng đã tồn tại.' );
+            $this->authorize('checkPermission', UserPermission::class);
+            $credential = UserPermission::where('user_id', $request->user_id)
+                ->where('permission_id', $request->permission_id)->first();
+            if ($credential) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Quyền hạn của người dùng đã tồn tại.');
             }
             $userPermission = UserPermission::create($request->all());
-            if(!$userPermission){
-               return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,messageResponseActionFailed() );
+            if (!$userPermission) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, messageResponseActionFailed());
             }
             $data = [
                 'userPermission' => new UserPermissionResource($userPermission)
@@ -65,39 +66,51 @@ class UserPermissionController extends Controller
     }
 
     //UPDATE api/dashboard/user-permission/update/{id}
-    public function update(UserPermissionRequest $request, string $id){
+    public function update(UserPermissionRequest $request, string $id)
+    {
         try {
-            $this->authorize('checkPermission',UserPermission::class);
-            $userPermission = UserPermission::where('id',$id)->where('deleted',0)->first();
+            $this->authorize('checkPermission', UserPermission::class);
+            $userPermission = UserPermission::where('id', $id)->where('deleted', 0)->first();
             empty($userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $credential = UserPermission::where('user_id',$request->user_id)
-                                        ->where('permission_id',$request->permission_id)
-                                        ->where('id','!=',$id)
-                                        ->first();
-            if($credential){
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST,'Quyền hạn của người dùng đã tồn tại.' );
+            $credential = UserPermission::where('user_id', $request->user_id)
+                ->where('permission_id', $request->permission_id)
+                ->where('id', '!=', $id)
+                ->first();
+            if ($credential) {
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Quyền hạn của người dùng đã tồn tại.');
             }
             $permissionUpdated = UserPermission::where('id', $id)->update([
                 'user_id' => $request->user_id,
-                'permission_id' =>$request->permission_id
+                'permission_id' => $request->permission_id
             ]);
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-        }       
+        }
     }
 
     //DELETE api/dashboard/permission/delete/{id}
-    public function destroy(string $id){
+    public function destroy(string $id)
+    {
         try {
-            $this->authorize('checkPermission',UserPermission::class);
-            $userPermission = UserPermission::where('id',$id)->where('deleted',0)->first();
-            empty( $userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $userPermission->deleted = 1;
-            $userPermission->save();
+            $this->authorize('delete', UserPermission::class);
+            DB::beginTransaction();
+            $userPermission = UserPermission::where('id', $id)->where('deleted', 0)->first();
+            empty($userPermission) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            $hasRelatedRecords = $userPermission->user()->exists()
+                || $userPermission->permission()->exists();
+            if ($hasRelatedRecords) {
+                $userPermission->deleted = 1;
+                $userPermission->save();
+            } else {
+                $userPermission->delete();
+            }
+            DB::commit();
+
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {
+            DB::rollBack();
             return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
-        }    
+        }
     }
 }

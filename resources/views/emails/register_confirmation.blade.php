@@ -50,6 +50,8 @@
     <div class="success-message">
         <span class="success-icon">&#10004;</span>
         <p class="success-text">Đăng ký tài khoản thành công!</p>
+        <p>Vui lòng xác nhận đăng ký bằng cách nhấp vào liên kết dưới đây:</p>
+        <p><a href="{{ $verificationUrl }}">Xác nhận đăng ký</a></p>
     </div>
 </div>
 </body>

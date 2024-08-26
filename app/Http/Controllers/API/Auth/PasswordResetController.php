@@ -33,6 +33,7 @@ class PasswordResetController extends Controller
                     'email' => 'Email'
                 ]
             );
+
             if ($validator->fails()) {
                 $errors = $validator->errors();
                 $customMessages = $errors->all();
@@ -43,18 +44,32 @@ class PasswordResetController extends Controller
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, 'Email không tồn tại');
             }
             $token = bin2hex(random_bytes(32));
-            $validToken = DB::table('password_reset_tokens')
-                ->insert([
-                    'email' => $request->email,
-                    'token' => $token,
-                    'created_at' => now()
-                ]);
+            $existingToken = DB::table('password_reset_tokens')
+                ->where('email', $request->email)
+                ->first();
+            if ($existingToken) {
+                // Update the existing token
+                DB::table('password_reset_tokens')
+                    ->where('email', $request->email)
+                    ->update([
+                        'token' => $token,
+                        'created_at' => now()
+                    ]);
+            } else {
+                DB::table('password_reset_tokens')
+                    ->insert([
+                        'email' => $request->email,
+                        'token' => $token,
+                        'created_at' => now()
+                    ]);
+            }
             Mail::to($request->email)->send(new ResetPassword($token, $request->email));
-            return ApiResponse(true,  $token, Response::HTTP_OK, 'Token đã được gửi tới email thành công');
+            return ApiResponse(true, $token, Response::HTTP_OK, 'Token đã được gửi tới email thành công');
         } catch (\Exception $e) {
             return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $e->getMessage());
         }
     }
+
     // POST api/account/check-token
     public function checkToken(Request $request)
     {

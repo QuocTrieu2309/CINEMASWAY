@@ -109,27 +109,42 @@ class CinemaScreenController extends Controller
         try {
             $this->authorize('delete', CinemaScreen::class);
             DB::beginTransaction();
-            $CinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
-            empty($CinemaScreen) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $hasActiveShowtimes = $CinemaScreen->showtimes()
-                ->where('show_time', '>=', now())
+
+            // Tìm CinemaScreen theo ID và chưa bị xóa
+            $cinemaScreen = CinemaScreen::where('deleted', 0)->find($id);
+            if (empty($cinemaScreen)) {
+                throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
+            }
+            $now = now();
+            $today = $now->toDateString();
+            $hasActiveShowtimes = $cinemaScreen->showtimes()
+                ->where(function ($query) use ($now, $today) {
+                    $query->where(function ($subQuery) use ($now) {
+                        $subQuery->where('show_time', '>', $now);
+                    })->orWhere(function ($subQuery) use ($today) {
+                        $subQuery->where('show_date', '>=', $today);
+                    });
+                })
                 ->where('deleted', 0)
                 ->whereHas('bookings', function ($query) {
                     $query->where('status', 'Payment successful');
                 })
                 ->exists();
             if ($hasActiveShowtimes) {
-                throw new \ErrorException('Không thể xóa màn hình rạp chiếu khi vẫn còn suất chiếu đang hoạt động và đã có vé được đặt.', Response::HTTP_BAD_REQUEST);
+                throw new \ErrorException('Không thể xóa màn hình rạp chiếu khi có suất chiếu hợp lệ và đã có khách hàng đặt vé', Response::HTTP_BAD_REQUEST);
             }
-            $hasRelatedRecords = $CinemaScreen->seatMaps()->exists() ||
-                $CinemaScreen->seats()->exists() ||
-                $CinemaScreen->showtimes()->exists();
+
+            $hasRelatedRecords = $cinemaScreen->seatMaps()->exists() ||
+                $cinemaScreen->seats()->exists() ||
+                $cinemaScreen->showtimes()->exists();
+
             if ($hasRelatedRecords) {
-                $CinemaScreen->deleted = 1;
-                $CinemaScreen->save();
+                $cinemaScreen->deleted = 1;
+                $cinemaScreen->save();
             } else {
-                $CinemaScreen->delete();
+                $cinemaScreen->delete();
             }
+
             DB::commit();
             return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
         } catch (\Exception $e) {

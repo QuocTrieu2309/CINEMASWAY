@@ -34,7 +34,9 @@ class PasswordResetController extends Controller
                 ]
             );
             if ($validator->fails()) {
-                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, ['errors' => $validator->errors()]);
+                $errors = $validator->errors();
+                $customMessages = $errors->all();
+                return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, $customMessages);
             }
             $user = User::where('email', $request->email)->first();
             if (!$user) {
@@ -72,21 +74,21 @@ class PasswordResetController extends Controller
                     'password' => 'Mật khẩu mới',
                 ]
             );
-    
+
             if ($validator->fails()) {
                 $credential = DB::table('password_reset_tokens')->where('email', $request->email)->delete();
                 return ApiResponse(false, null, Response::HTTP_BAD_REQUEST, ['errors' => $validator->errors()]);
             }
-    
+
             $user = User::where('email', $request->email)->first();
             if (!$user) {
                 $credential = DB::table('password_reset_tokens')->where('email', $request->email)->delete();
                 return ApiResponse(true,  null, Response::HTTP_OK, 'Email không tồn tại');
             }
-    
+
             $user->password = Hash::make(trim($request->password));
             $user->save();
-    
+
             $credential = DB::table('password_reset_tokens')->where('email', $request->email)->delete();
             return ApiResponse(true, $user, Response::HTTP_OK, 'Reset password thành công, vui lòng đăng nhập lại để sử dụng dịch vụ');
         } catch (\Exception $e) {

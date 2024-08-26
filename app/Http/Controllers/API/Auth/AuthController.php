@@ -68,7 +68,7 @@ class AuthController extends Controller
                 }
                 $token = $user->createToken('API Token')->plainTextToken;
                 if ($token) {
-                    $expiresAt = Carbon::now()->addMinutes(100);
+                    $expiresAt = Carbon::now()->addMinutes(60);
                     DB::table('personal_access_tokens')
                         ->where('tokenable_id', $user->id)
                         ->update(['expires_at' => $expiresAt]);

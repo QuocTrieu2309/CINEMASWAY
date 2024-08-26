@@ -18,6 +18,7 @@ class CinemaResource extends JsonResource
             'id' => $this->id,
             'name' =>$this->name,
             'city' =>$this->city,
+            'quantity' => $this->quantity,
         ];
     }
 }

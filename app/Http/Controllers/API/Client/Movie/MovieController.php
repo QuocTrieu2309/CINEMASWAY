@@ -8,6 +8,7 @@ use App\Models\Movie;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
 use Spatie\LaravelIgnition\Recorders\DumpRecorder\Dump;
 
 class MovieController extends Controller
@@ -15,40 +16,51 @@ class MovieController extends Controller
     // Get api/client/movie (truyền status: không truyền-tất cả, 1-đang chiếu, 2-sắp chiếu)
     public function index(Request $request)
     {
-        try {
-            $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
-            $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
-            $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
-            $today = now()->toDateString();
-
-            $query = Movie::where('deleted', 0)
-                ->where('end_date', '>=', $today)
-                ->where('status', '!=', Movie::STATUS_STOPPED);
-
-            if ($request->status == 1) {
-                $query->where('status', Movie::STATUS_CURRENTLY);
-            } elseif ($request->status == 2) {
-                $query->where('status', Movie::STATUS_COMING);
-            }
-
-            $data = $query->orderBy($this->sort, $this->order)
-                ->paginate($this->limit);
-
-            $result = [
-                'movie' => MovieResource::collection($data),
-                'meta' => [
-                    'total' => $data->total(),
-                    'perPage' => $data->perPage(),
-                    'currentPage' => $data->currentPage(),
-                    'lastPage' => $data->lastPage(),
-                ],
-            ];
-
-            return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
-        } catch (\Exception $e) {
-            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+    try {
+        $this->limit = $this->handleLimit($request->get('limit'), $this->limit);
+        $this->order = $this->handleFilter(Config::get('paginate.orders'), $request->get('order'), $this->order);
+        $this->sort = $this->handleFilter(Config::get('paginate.sorts'), $request->get('sort'), $this->sort);
+        $today = now()->toDateString();
+        $updatedCount = Movie::where('release_date', '<=', $today)
+        ->update(['is_early_showtime' => 0]);
+        $moviesWithEarlyShowtime = Movie::whereHas('showtimes', function ($query) {
+            $query->where('status', 'Xuất chiếu sớm');
+        })->get();
+        foreach ($moviesWithEarlyShowtime as $movie) {
+            $movie->is_early_showtime = 1;
+            $movie->save();
         }
+        $query = Movie::where('deleted', 0)
+            ->where('end_date', '>=', $today)
+            ->where('status', '!=', Movie::STATUS_STOPPED);
+
+        if ($request->status == 1) {
+            $query->where('status', Movie::STATUS_CURRENTLY);
+        } elseif ($request->status == 2) {
+            $query->where('status', Movie::STATUS_COMING);
+        }
+
+        $data = $query->orderBy($this->sort, $this->order)
+            ->paginate($this->limit);
+
+        $result = [
+            'movie' => MovieResource::collection($data),
+            'meta' => [
+                'total' => $data->total(),
+                'perPage' => $data->perPage(),
+                'currentPage' => $data->currentPage(),
+                'lastPage' => $data->lastPage(),
+            ],
+        ];
+
+        return ApiResponse(true, $result, Response::HTTP_OK, messageResponseData());
+    } catch (\Exception $e) {
+        return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
     }
+    }
+
+
+
     // Get api/client/movie/{id}
     public function show($id)
     {

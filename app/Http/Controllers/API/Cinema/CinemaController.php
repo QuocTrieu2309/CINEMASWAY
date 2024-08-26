@@ -117,24 +117,51 @@ class CinemaController extends Controller
      */
     //DELETE api/dashboard/cinema/delete/{id}
     public function destroy(string $id)
-    {
-        try {
-            $this->authorize('delete', Cinema::class);
-            DB::beginTransaction();
-            $cinema = Cinema::where('id', $id)->where('deleted', 0)->first();
-            empty($cinema) && throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
-            $hasRelatedRecords = $cinema->cinemaScreens()->exists();
-            if ($hasRelatedRecords) {
-                $cinema->deleted = 1;
-                $cinema->save();
-            } else {
-                $cinema->delete();
-            }
-            DB::commit();
-            return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
-        } catch (\Exception $e) {
-            DB::rollback();
-            return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
+{
+    try {
+        $this->authorize('delete', Cinema::class);
+        DB::beginTransaction();
+        $cinema = Cinema::where('id', $id)->where('deleted', 0)->first();
+        if (empty($cinema)) {
+            throw new \ErrorException(messageResponseNotFound(), Response::HTTP_BAD_REQUEST);
         }
+        $now = now();
+        $today = $now->toDateString();
+        $hasActiveShowtimes = $cinema->cinemaScreens()
+            ->whereHas('showtimes', function ($query) use ($now, $today) {
+                $query->where(function ($subQuery) use ($now) {
+                    $subQuery->where('show_time', '>', $now);
+                })->orWhere(function ($subQuery) use ($today) {
+                    $subQuery->where('show_date', '>=', $today);
+                });
+            })
+            ->where('deleted', 0)
+            ->exists();
+        $hasSuccessfulBookings = $cinema->cinemaScreens()
+            ->whereHas('showtimes', function ($query) {
+                $query->whereHas('bookings', function ($query) {
+                    $query->where('status', 'Payment successful');
+                });
+            })
+            ->exists();
+
+        if ($hasActiveShowtimes && $hasSuccessfulBookings) {
+            throw new \ErrorException('Không thể xóa rạp chiếu có suất chiếu hoạt động và có vé đã đặt thành công', Response::HTTP_BAD_REQUEST);
+        }
+        $hasRelatedRecords = $cinema->cinemaScreens()->exists();
+        if ($hasRelatedRecords) {
+            $cinema->deleted = 1;
+            $cinema->save();
+        } else {
+            $cinema->delete();
+        }
+
+        DB::commit();
+        return ApiResponse(true, null, Response::HTTP_OK, messageResponseActionSuccess());
+    } catch (\Exception $e) {
+        DB::rollback();
+        return ApiResponse(false, null, Response::HTTP_BAD_GATEWAY, $e->getMessage());
     }
+}
+
 }
